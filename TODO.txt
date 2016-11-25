@@ -1,0 +1,12 @@
+cumulative reward in gridworld: ql vs dqn(mlp)
+dim = 5
+dim = 10
+dim = 20
+
+cumulative reward in tictactoe: ql vs dqn(mlp)
+partidos ganados: ql vs dqn
+dim=3
+dim=4
+dim=5
+
+uso de memoria

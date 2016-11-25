@@ -1,22 +1,24 @@
-import numpy as np
 import random
+
 from mlp import MLP
+import numpy as np
 from rl_base import ReinforcementLearning
 
 
 class DQN(ReinforcementLearning):
     buffer_size = 100
     batch_size = 10
-    clone_network_steps = 10
+    clone_network_steps = 100
 
     def __init__(self, *args, **kwargs):
         super(DQN, self).__init__(*args, **kwargs)
-        assert(len(self.state0.shape) == 1)
-        self.state_size = self.state0.shape[0]
-        self.Q = MLP(self.state_size, self.state_size/2, self.world.number_of_actions())
+        state_size = self.world.state_parser.state_size()
+        self.Q = MLP(state_size, state_size / 2,
+                     self.world.number_of_actions())
         self.Q_ = self.Q.clone()
         self.D = []
         self.err = []
+        self.updates = 0
 
     def best_action(self, state):
         y0 = self.Q.predict([state])
@@ -30,7 +32,8 @@ class DQN(ReinforcementLearning):
             actions.append(self.D[i][1])
             new_states.append(self.D[i][2])
             rewards.append(self.D[i][3])
-        return np.array(states), np.array(actions), np.array(new_states), np.array(rewards)
+        return (np.array(states), np.array(actions), np.array(new_states),
+                np.array(rewards))
 
     def learn(self, state, action, new_state, reward):
         self.D.append((state, action, new_state, reward))
@@ -49,9 +52,17 @@ class DQN(ReinforcementLearning):
         y0 = self.Q.predict(states)
         y0[np.arange(len(y0)), actions] = obj
         e = self.Q.train(states, y0)
+        self.updates += 1
+        if self.updates >= self.clone_network_steps:
+            self.updates = 0
+            self.Q.clone_in_existing_mlp(self.Q_)
+            self.graph_info()
         self.err.append(e.mean())
 
     def train_step(self, i):
         super(DQN, self).train_step(i)
-        if i % self.clone_network_steps == 0:
-            self.Q.clone_in_existing_mlp(self.Q_)
+
+    def save_data(self, name="rl"):
+        super(DQN, self).save_data(name)
+        np.savetxt(name + "_" + "error.csv",
+                   self.err, delimiter=",")

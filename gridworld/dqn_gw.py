@@ -1,7 +1,10 @@
 import copy
-import numpy as np
-from model import StateParser, World
+
 from dqn import DQN
+
+from model import StateParser, World
+
+import numpy as np
 
 
 class GridWorldStateParser(StateParser):
@@ -24,16 +27,18 @@ class GridWorldStateParser(StateParser):
         y[state[1]] = 1
         return np.array(x + y)
 
+    def state_size(self):
+        return 2 * self.dim
+
 
 class GridWorld(World):
 
-    def __init__(self, dim, *args, **kwargs):
+    def __init__(self, dim, target, *args, **kwargs):
         self.dim = dim
-        self.state_parser = GridWorldStateParser(self.dim)
+        self.target = target
         super(GridWorld, self).__init__(*args, **kwargs)
 
     def exe_action(self, state, action):
-        # from numbers
         new_state = copy.deepcopy(state)
         new_state += action
         reward = 0
@@ -42,14 +47,20 @@ class GridWorld(World):
                 new_state[i] = max(0, min(self.dim - 1, new_state[i]))
                 reward = -1
         if self.isterminal(new_state):
-            reward = 1
+            reward = 10
+        else:
+            dist = np.linalg.norm(self.target - new_state)
+            reward = 1.0 / dist
         return new_state, reward
 
     def isterminal(self, state):
-        return np.array_equal(state, np.array([self.dim - 1, self.dim - 1]))
+        return np.array_equal(state, self.target)
 
     def number_of_states(self):
         return self.dim * self.dim
+
+    def gen_random_state(self):
+        return np.random.random_integers(0, self.dim - 1, 2)
 
 
 if __name__ == "__main__":
@@ -60,7 +71,17 @@ if __name__ == "__main__":
         np.array([-1, 0]),
     ]
 
-    rl = DQN(GridWorld(8, actions), np.array([0, 0]))
+    DIM = 13
+
+    rl = DQN(GridWorld(DIM, np.array([DIM / 2, DIM / 2]), actions,
+             GridWorldStateParser(DIM)))
+    rl.random_prob = 0.75
     rl.buffer_size = 10
     rl.batch_size = 3
-    rl.train(300)
+    rl.clone_network_steps = 50
+    try:
+        rl.train(300)
+    finally:
+        print "SAVING FILES...",
+        rl.save_data("graph/dqn_gw_" + str(DIM))
+        print "DONE"

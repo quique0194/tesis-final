@@ -1,8 +1,9 @@
-from rl_base import ReinforcementLearning
 import numpy as np
+from rl_base import ReinforcementLearning
 
 
 class QLearning(ReinforcementLearning):
+    alpha = 0.3
 
     def __init__(self, *args, **kwargs):
         super(QLearning, self).__init__(*args, **kwargs)
@@ -18,4 +19,5 @@ class QLearning(ReinforcementLearning):
             self.Q[state, action] = reward
         else:
             # print reward + self.discount_rate * qmax
-            self.Q[state, action] = reward + self.discount_rate * qmax
+            self.Q[state, action] += self.alpha * \
+                (reward + self.discount_rate * qmax)
