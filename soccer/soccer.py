@@ -19,7 +19,7 @@ def main():
     match = Match(
         2, 2,
         red_strategy=auto_strategy,
-        blue_strategy=manual_strategy,
+        blue_strategy=auto_strategy,
     )
 
     while True:

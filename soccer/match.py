@@ -66,7 +66,7 @@ class Match(object):
         for player in self.red_team:
             if player.kicked:
                 player.kicked = False
-                self.red_score -= 10
+                self.blue_score -= 10
 
     def run(self):
         if self.red_strategy:

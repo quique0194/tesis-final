@@ -22,12 +22,16 @@ def auto_goalkeeper(team, role, opp, ball, side=0, tic=0):
         goals[side] + np.array([delta, goal_height]),
         goals[side] + np.array([delta, -goal_height]),
     ]
-    dest = goal_keeper_points[auto_goalkeeper.curr_point]
+    if not hasattr(team[role], 'curr_point'):
+        team[role].curr_point = 0
+    dest = goal_keeper_points[team[role].curr_point]
     if dist(team[role].pos, dest) < 0.01:
-        auto_goalkeeper.curr_point = (auto_goalkeeper.curr_point + 1) % 2
+        if side == 0:
+            print team[role].curr_point
+            print dist(team[role].pos, dest)
+        team[role].curr_point = (team[role].curr_point + 1) % 2
     team[role].move_to(dest)
     team[role].kick(ball, 0.5, 0)
-auto_goalkeeper.curr_point = 0
 
 
 def auto_attacker(team, role, opp, ball, side=0, tic=0):
