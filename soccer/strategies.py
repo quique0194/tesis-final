@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import pygame
 from pygame.locals import (
@@ -34,6 +35,9 @@ def auto_attacker(team, role, opp, ball, side=0, tic=0):
         team[role].move_to(ball.pos)
     else:
         team[role].repeat_last_move()
+    noise = random.uniform(-20, 20)
+    team[role].kick(ball, 0.1,
+                    angle_to(team[role].pos, goals[not side]) + noise)
 
 
 def auto_strategy(team, opp, ball, side=0, tic=0):

@@ -22,7 +22,7 @@ class Player(object):
         return self.move(mv)
 
     def repeat_last_move(self):
-        if self.prev_move is not None:
+        if hasattr(self, 'prev_move') and self.prev_move is not None:
             return self.move(self.prev_move)
         else:
             return self.move([0, 0])

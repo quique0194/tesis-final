@@ -19,11 +19,15 @@ class Match(object):
             Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
             Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
         ]
+        self.red_team = self.red_team[:self.red_players]
+        self.blue_team = self.blue_team[:self.blue_players]
         self.ball = Ball(0, 0)
         self.tic = 0
 
     def __init__(self, red_players=3, blue_players=3, red_strategy=None,
                  blue_strategy=None):
+        self.red_players = red_players
+        self.blue_players = blue_players
         self.reset()
         self.field = pygame.image.load("soccer_field.png")
         self.red_strategy = red_strategy

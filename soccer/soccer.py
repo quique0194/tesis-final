@@ -17,6 +17,7 @@ def main():
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Soccer")
     match = Match(
+        2, 2,
         red_strategy=auto_strategy,
         blue_strategy=manual_strategy,
     )
