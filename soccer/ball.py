@@ -9,6 +9,7 @@ class Ball(object):
     def __init__(self, x, y):
         self.pos = [x, y]
         self.traveled = 0
+        self.speed = 0.015
         self.power = 0
         self.angle = 0
 
@@ -20,15 +21,37 @@ class Ball(object):
         pygame.draw.circle(screen, black, pixelof(*self.pos), 2, 0)
         pygame.draw.circle(screen, black, pixelof(*self.pos), 5, 1)
 
-    def move(self, dpos):
-        self.pos[0] += dpos[0]
-        self.pos[1] += dpos[1]
+    def valid_move(self, mv):
+        pos = list(self.pos)
+        pos[0] += mv[0]
+        pos[1] += mv[1]
+        error = False
+        if pos[0] > 1:
+            pos[0] = 1
+            error = True
+        elif pos[0] < -1:
+            pos[0] = -1
+            error = True
+        if pos[1] > 1:
+            pos[1] = 1
+            error = True
+        elif pos[1] < -1:
+            pos[1] = -1
+            error = True
+        return not error
+
+    def move(self, mv):
+        if not self.valid_move(mv):
+            return False
+        self.pos[0] += mv[0]
+        self.pos[1] += mv[1]
+        return True
 
     def update(self):
         # ball always move 0.01 units per tic
         if self.traveled < self.power:
             rad = np.radians(self.angle)
-            mv = [0.01 * np.cos(rad), 0.01 * np.sin(rad)]
+            mv = [self.speed * np.cos(rad), self.speed * np.sin(rad)]
             self.move(mv)
             self.traveled += dist([0, 0], mv)
 

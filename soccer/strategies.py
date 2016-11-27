@@ -51,7 +51,7 @@ def auto_strategy(team, opp, ball, side=0, tic=0):
 def manual_strategy(team, opp, ball, side=0, tic=0):
     keys = pygame.key.get_pressed()
     mv = [0, 0]
-    player1_speed = 0.01
+    player1_speed = team[0].max_speed / 1.4142
     if keys[K_LEFT]:
         mv[0] -= player1_speed
     if keys[K_RIGHT]:
@@ -62,5 +62,5 @@ def manual_strategy(team, opp, ball, side=0, tic=0):
         mv[1] -= player1_speed
     if keys[K_SPACE]:
         angle = angle_to(team[0].pos, goals[not side])
-        team[0].kick(ball, 0.1, angle)
+        team[0].kick(ball, 0.7, angle)
     team[0].move(mv)

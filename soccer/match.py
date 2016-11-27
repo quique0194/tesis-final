@@ -2,7 +2,7 @@ import random
 import pygame
 from player import Player
 from ball import Ball
-from settings import red, blue, black, goals
+from settings import red, blue, black, white, goals
 from utils import get_goal_rect
 
 
@@ -21,7 +21,9 @@ class Match(object):
         ]
         self.red_team = self.red_team[:self.red_players]
         self.blue_team = self.blue_team[:self.blue_players]
-        self.ball = Ball(0, 0)
+        self.blue_score = 0
+        self.red_score = 0
+        self.ball = Ball(random.uniform(-1, 0), random.uniform(-1, 1))
         self.tic = 0
 
     def __init__(self, red_players=3, blue_players=3, red_strategy=None,
@@ -46,9 +48,25 @@ class Match(object):
         screen.blit(self.field, (0, 0))
         for player in self.red_team + self.blue_team:
             player.draw(screen)
+        font = pygame.font.Font(None, 30)
+        ren = font.render("Blue score: " + str(self.blue_score),
+                          0, black, white)
+        screen.blit(ren, (10, 10))
         self.ball.draw(screen)
         self.draw_goals(screen)
         pygame.display.flip()
+
+    def calculate_blue_score(self):
+        if self.tic % 10 == 0:
+            self.blue_score -= 1
+        for player in self.blue_team:
+            if player.kicked:
+                player.kicked = False
+                self.blue_score += 10
+        for player in self.red_team:
+            if player.kicked:
+                player.kicked = False
+                self.red_score -= 10
 
     def run(self):
         if self.red_strategy:
@@ -58,6 +76,8 @@ class Match(object):
             self.blue_strategy(self.blue_team, self.red_team, self.ball,
                                side=1, tic=self.tic)
         self.ball.update()
+        # TODO: calculate_red_score()
         if self.is_ball_in_goal() is not None:
             self.reset()
+        self.calculate_blue_score()
         self.tic += 1
