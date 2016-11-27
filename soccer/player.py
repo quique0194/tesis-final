@@ -1,6 +1,6 @@
 import pygame
-from settings import width, height, blue
-from utils import pixelof, dist
+from settings import blue
+from utils import pixelof, dist, size2pixels
 
 
 class Player(object):
@@ -11,7 +11,7 @@ class Player(object):
         self.size = 0.025
 
     def draw(self, screen):
-        size = int(self.size * min(width, height))
+        size = size2pixels(self.size)
         pygame.draw.circle(screen, self.team, pixelof(*self.pos),
                            size / 3, 0)
         pygame.draw.circle(screen, self.team, pixelof(*self.pos), size, 1)

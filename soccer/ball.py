@@ -12,6 +12,10 @@ class Ball(object):
         self.power = 0
         self.angle = 0
 
+    @property
+    def pypos(self):
+        return pixelof(*self.pos)
+
     def draw(self, screen):
         pygame.draw.circle(screen, black, pixelof(*self.pos), 2, 0)
         pygame.draw.circle(screen, black, pixelof(*self.pos), 5, 1)
