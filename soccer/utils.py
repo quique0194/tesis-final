@@ -4,11 +4,36 @@ from settings import width, height
 from pygame import Rect
 
 
+def tonp(x):
+    if type(x) != np.ndarray:
+        x = np.array(x)
+    return x
+
+
 def dist(a, b):
+    a = tonp(a)
+    b = tonp(b)
     return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
+def vector_to(a, b):
+    a = tonp(a)
+    b = tonp(b)
+    return b - a
+
+
+def normalize_vector(a, limit):
+    # limit must be positive
+    comp = max(abs(a[0]), abs(a[1]))
+    if comp < limit:
+        return a
+    factor = comp / limit
+    a = tonp(a)
+    return a / factor
+
+
 def pixelof(x, y):
+    # print x, y
     return int((x + 1) * width / 2.0), int((y + 1) * height / 2.0)
 
 

@@ -1,3 +1,4 @@
+import random
 import pygame
 from player import Player
 from ball import Ball
@@ -6,16 +7,17 @@ from utils import get_goal_rect
 
 
 class Match(object):
+
     def reset(self):
         self.red_team = [
-            Player(-0.9, 0, red),
-            Player(-0.5, 0, red),
-            Player(-0.1, 0, red),
+            Player(random.uniform(-1, 0), random.uniform(-1, 1), red),
+            Player(random.uniform(-1, 0), random.uniform(-1, 1), red),
+            Player(random.uniform(-1, 0), random.uniform(-1, 1), red),
         ]
         self.blue_team = [
-            Player(0.1, 0, blue),
-            Player(0.5, 0, blue),
-            Player(0.9, 0, blue),
+            Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
+            Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
+            Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
         ]
         self.ball = Ball(0, 0)
         self.tic = 0

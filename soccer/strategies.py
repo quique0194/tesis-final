@@ -1,5 +1,4 @@
 import pygame
-import random
 from pygame.locals import (
     K_LEFT,
     K_RIGHT,
@@ -8,13 +7,15 @@ from pygame.locals import (
     K_SPACE,
 )
 from settings import goals
-from utils import angle_to
+from utils import angle_to, vector_to, normalize_vector
 
 
 def auto_strategy(team, opp, ball, side=0, tic=0):
     for i, player in enumerate(team):
         if tic % 50 == 0:
-            mv = [random.uniform(-0.01, 0.01), random.uniform(-0.01, 0.01)]
+            # mv = [random.uniform(-0.01, 0.01), random.uniform(-0.01, 0.01)]
+            mv = vector_to(player.pos, ball.pos)
+            mv = normalize_vector(mv, 0.003)
             auto_strategy.prev_moves[i] = mv
             player.move(mv)
         else:
