@@ -48,11 +48,11 @@ class Match(object):
 
     def run(self):
         if self.red_strategy:
-            self.red_strategy(self.red_team, self.blue_team, self.ball,
+            self.red_strategy(self.red_team, self.blue_team, self.ball, side=0,
                               tic=self.tic)
         if self.blue_strategy:
             self.blue_strategy(self.blue_team, self.red_team, self.ball,
-                               tic=self.tic)
+                               side=1, tic=self.tic)
         self.ball.update()
         if self.is_ball_in_goal() is not None:
             self.reset()

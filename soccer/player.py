@@ -1,6 +1,6 @@
 import pygame
 from settings import blue
-from utils import pixelof, dist, size2pixels
+from utils import pixelof, dist, size2pixels, normalize_vector, vector_to
 
 
 class Player(object):
@@ -16,7 +16,19 @@ class Player(object):
                            size / 3, 0)
         pygame.draw.circle(screen, self.team, pixelof(*self.pos), size, 1)
 
+    def move_to(self, dest, speed=0.005):
+        mv = vector_to(self.pos, dest)
+        mv = normalize_vector(mv, speed)
+        return self.move(mv)
+
+    def repeat_last_move(self):
+        if self.prev_move is not None:
+            return self.move(self.prev_move)
+        else:
+            return self.move([0, 0])
+
     def move(self, dpos):
+        self.prev_move = dpos
         self.pos[0] += dpos[0]
         self.pos[1] += dpos[1]
         error = False

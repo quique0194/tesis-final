@@ -1,3 +1,4 @@
+import numpy as np
 import pygame
 from pygame.locals import (
     K_LEFT,
@@ -6,21 +7,41 @@ from pygame.locals import (
     K_UP,
     K_SPACE,
 )
-from settings import goals
-from utils import angle_to, vector_to, normalize_vector
+from settings import goals, goal_width, goal_height
+from utils import angle_to, dist
+
+
+def auto_goalkeeper(team, role, opp, ball, side=0, tic=0):
+    # role = idx of player in team
+    if side == 0:
+        delta = 2 * goal_width
+    else:
+        delta = - 2 * goal_width
+    goal_keeper_points = [
+        goals[side] + np.array([delta, goal_height]),
+        goals[side] + np.array([delta, -goal_height]),
+    ]
+    dest = goal_keeper_points[auto_goalkeeper.curr_point]
+    if dist(team[role].pos, dest) < 0.01:
+        auto_goalkeeper.curr_point = (auto_goalkeeper.curr_point + 1) % 2
+    team[role].move_to(dest)
+    team[role].kick(ball, 0.5, 0)
+auto_goalkeeper.curr_point = 0
+
+
+def auto_attacker(team, role, opp, ball, side=0, tic=0):
+    if tic % 50 == 0:
+        team[role].move_to(ball.pos)
+    else:
+        team[role].repeat_last_move()
 
 
 def auto_strategy(team, opp, ball, side=0, tic=0):
-    for i, player in enumerate(team):
-        if tic % 50 == 0:
-            # mv = [random.uniform(-0.01, 0.01), random.uniform(-0.01, 0.01)]
-            mv = vector_to(player.pos, ball.pos)
-            mv = normalize_vector(mv, 0.003)
-            auto_strategy.prev_moves[i] = mv
-            player.move(mv)
-        else:
-            player.move(auto_strategy.prev_moves[i])
-auto_strategy.prev_moves = [[0, 0]] * 3
+    auto_goalkeeper(team, 0, opp, ball, side, tic)
+    if len(team) > 1:
+        auto_attacker(team, 1, opp, ball, side, tic)
+    if len(team) > 2:
+        auto_attacker(team, 2, opp, ball, side, tic)
 
 
 def manual_strategy(team, opp, ball, side=0, tic=0):

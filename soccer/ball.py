@@ -28,12 +28,13 @@ class Ball(object):
         # ball always move 0.01 units per tic
         if self.traveled < self.power:
             rad = np.radians(self.angle)
-            mv = [0.01 * np.sin(rad), 0.01 * np.cos(rad)]
+            mv = [0.01 * np.cos(rad), 0.01 * np.sin(rad)]
             self.move(mv)
             self.traveled += dist([0, 0], mv)
 
     def kick(self, power, angle):
         # angle in degrees
+        # check self.update()
         self.power = power
         self.angle = angle
         self.traveled = 0

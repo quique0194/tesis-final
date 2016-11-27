@@ -1,3 +1,4 @@
+import numpy as np
 
 white = 255, 255, 255
 black = 0, 0, 0
@@ -9,6 +10,8 @@ red = 200, 0, 0
 width = 544
 height = 360
 goals = [
-    [-1, 0],
-    [1, 0],
+    np.array([-1, 0]),
+    np.array([1, 0]),
 ]
+goal_width = 0.05
+goal_height = 0.25
