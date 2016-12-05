@@ -15,11 +15,11 @@ from strategies import auto_strategy, manual_strategy
 
 
 def run(graphics=True, human_speed=False):
+    if not graphics:
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
     pygame.init()
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Soccer")
-    if not graphics:
-        os.environ["SDL_VIDEODRIVER"] = "dummy"
     match = Match(
         2, 2,
         red_strategy=auto_strategy,
