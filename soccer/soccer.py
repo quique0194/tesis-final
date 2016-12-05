@@ -5,6 +5,7 @@
 import time
 import sys
 import pygame
+import os
 from pygame.locals import (
     QUIT,
 )
@@ -18,6 +19,8 @@ def run(graphics=True, human_speed=False):
         pygame.init()
         screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("Soccer")
+    else:
+        os.environ["SDL_VIDEODRIVER"] = "dummy"
     match = Match(
         2, 2,
         red_strategy=auto_strategy,
