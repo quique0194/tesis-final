@@ -1,9 +1,12 @@
 import random
 import pygame
+from pygame import Color
 from player import Player
 from ball import Ball
 from settings import red, blue, black, white, goals
 from utils import get_goal_rect
+import settings
+from PIL import Image
 
 
 class Match(object):
@@ -44,17 +47,27 @@ class Match(object):
             if get_goal_rect(goal).collidepoint(self.ball.pypos):
                 return i
 
-    def draw(self, screen):
-        screen.blit(self.field, (0, 0))
+    def draw(self, screen, draw_to_img=False):
+        # screen.blit(self.field, (0, 0))       # soccer field background
+        screen.fill(Color("white"))     # white background
         for player in self.red_team + self.blue_team:
             player.draw(screen)
         font = pygame.font.Font(None, 30)
-        ren = font.render("Blue score: " + str(self.blue_score),
-                          0, black, white)
-        screen.blit(ren, (10, 10))
+        if not draw_to_img:
+            ren = font.render("Blue score: " + str(self.blue_score),
+                              0, black, white)
+            screen.blit(ren, (10, 10))
         self.ball.draw(screen)
         self.draw_goals(screen)
-        pygame.display.flip()
+        if draw_to_img:
+            data = pygame.image.tostring(screen, "RGBA")
+            image = Image.fromstring("RGBA", (settings.width, settings.height),
+                                     data)
+            if random.random() < 0.0001:
+                image.save("borrame.jpg")
+            return image
+        else:
+            pygame.display.flip()
 
     def calculate_blue_score(self):
         if self.tic % 10 == 0:

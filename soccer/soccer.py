@@ -25,7 +25,7 @@ def main():
     while True:
         time.sleep(0.01)
         match.run()
-        match.draw(screen)
+        match.draw(screen, draw_to_img=True)
         for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit()
