@@ -47,9 +47,11 @@ class Match(object):
             if get_goal_rect(goal).collidepoint(self.ball.pypos):
                 return i
 
-    def draw(self, screen, draw_to_img=False):
-        # screen.blit(self.field, (0, 0))       # soccer field background
-        screen.fill(Color("white"))     # white background
+    def draw(self, screen, draw_to_img=False, fancy=True):
+        if fancy:
+            screen.blit(self.field, (0, 0))       # soccer field background
+        else:
+            screen.fill(Color("white"))     # white background
         for player in self.red_team + self.blue_team:
             player.draw(screen)
         font = pygame.font.Font(None, 30)
@@ -90,7 +92,9 @@ class Match(object):
                                side=1, tic=self.tic)
         self.ball.update()
         # TODO: calculate_red_score()
-        if self.is_ball_in_goal() is not None:
+        gol_of = self.is_ball_in_goal()
+        if gol_of is not None:
+            print "GOL!!!!!!!!!!!", gol_of
             self.reset()
         self.calculate_blue_score()
         self.tic += 1

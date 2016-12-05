@@ -26,9 +26,6 @@ def auto_goalkeeper(team, role, opp, ball, side=0, tic=0):
         team[role].curr_point = 0
     dest = goal_keeper_points[team[role].curr_point]
     if dist(team[role].pos, dest) < 0.01:
-        if side == 0:
-            print team[role].curr_point
-            print dist(team[role].pos, dest)
         team[role].curr_point = (team[role].curr_point + 1) % 2
     team[role].move_to(dest)
     team[role].kick(ball, 0.5, 0)

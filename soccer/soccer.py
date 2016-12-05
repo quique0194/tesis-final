@@ -13,9 +13,11 @@ from match import Match
 from strategies import auto_strategy, manual_strategy
 
 
-def main():
-    screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("Soccer")
+def run(graphics=True, human_speed=False):
+    if graphics:
+        pygame.init()
+        screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption("Soccer")
     match = Match(
         2, 2,
         red_strategy=auto_strategy,
@@ -23,14 +25,15 @@ def main():
     )
 
     while True:
-        time.sleep(0.01)
+        if human_speed:
+            time.sleep(0.01)
         match.run()
-        match.draw(screen, draw_to_img=True)
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                sys.exit()
+        if graphics:
+            match.draw(screen, draw_to_img=False, fancy=True)
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    sys.exit()
 
 
 if __name__ == '__main__':
-    pygame.init()
-    main()
+    run(graphics=False)
