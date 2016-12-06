@@ -1,6 +1,6 @@
 import random
-import pygame
 from PIL import Image
+import pygame
 from pygame import Color
 from player import Player
 from ball import Ball
