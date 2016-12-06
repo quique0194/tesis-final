@@ -54,7 +54,7 @@ class Match(object):
             screen.fill(Color("white"))     # white background
         for player in self.red_team + self.blue_team:
             player.draw(screen)
-        font = pygame.font.Font(None, 30)
+        font = pygame.font.Font("Arial", 30)
         if not draw_to_img:
             ren = font.render("Blue score: " + str(self.blue_score),
                               0, black, white)
