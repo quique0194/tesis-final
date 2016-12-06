@@ -1,5 +1,5 @@
-import random
 from PIL import Image
+import random
 import pygame
 from pygame import Color
 from player import Player

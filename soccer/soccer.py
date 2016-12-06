@@ -4,8 +4,9 @@
 # Módulos
 import time
 import sys
-import pygame
+from PIL import Image
 import os
+import pygame
 from pygame.locals import (
     QUIT,
 )
