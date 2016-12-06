@@ -1,12 +1,12 @@
 import random
 import pygame
+from PIL import Image
 from pygame import Color
 from player import Player
 from ball import Ball
 from settings import red, blue, black, white, goals
 from utils import get_goal_rect
 import settings
-from PIL import Image
 
 
 class Match(object):
