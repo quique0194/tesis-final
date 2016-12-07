@@ -11,6 +11,7 @@ theano.config.floatX = 'float64'
 
 
 class MLP(object):
+
     def __init__(self, n_input, n_hidden, n_out, lr=0.3, lr_decay=1):
         self.n_input = n_input
         self.n_hidden = n_hidden
@@ -22,45 +23,45 @@ class MLP(object):
         self.lrs = lrs
 
         rng = np.random.RandomState(1234)
-        self.W0 = shared(np.asarray(rng.uniform(-0.1,0.1,(n_input, n_hidden)), dtype=theano.config.floatX),
-                    borrow=True,
-                    name="self.W0")
-        self.W1 = shared(np.asarray(rng.uniform(-0.1,0.1,(n_hidden, n_out)), dtype=theano.config.floatX),
-                    borrow=True,
-                    name="self.W1")
-        self.b0 = shared(np.asarray(rng.uniform(-0.1,0.1,n_hidden), dtype=theano.config.floatX),
-                    borrow=True,
-                    name="self.b0")
-        self.b1 = shared(np.asarray(rng.uniform(-0.1,0.1,n_out), dtype=theano.config.floatX),
-                    borrow=True,
-                    name="self.b1")
+        self.W0 = shared(np.asarray(rng.uniform(-0.1, 0.1, (n_input, n_hidden)), dtype=theano.config.floatX),
+                         borrow=True,
+                         name="self.W0")
+        self.W1 = shared(np.asarray(rng.uniform(-0.1, 0.1, (n_hidden, n_out)), dtype=theano.config.floatX),
+                         borrow=True,
+                         name="self.W1")
+        self.b0 = shared(np.asarray(rng.uniform(-0.1, 0.1, n_hidden), dtype=theano.config.floatX),
+                         borrow=True,
+                         name="self.b0")
+        self.b1 = shared(np.asarray(rng.uniform(-0.1, 0.1, n_out), dtype=theano.config.floatX),
+                         borrow=True,
+                         name="self.b1")
 
         l0 = T.dmatrix("l0")
-        l1 = T.tanh(T.dot(l0,self.W0) + self.b0)
+        l1 = T.tanh(T.dot(l0, self.W0) + self.b0)
         # l1 = T.nnet.relu(T.dot(l0,self.W0) + self.b0)
         # l1 = T.nnet.sigmoid(T.dot(l0,self.W0) + self.b0)
         # l1 = T.dot(l0,self.W0) + self.b0
         # l2 = T.nnet.relu(T.dot(l1,self.W1) + self.b1)
         # l2 = T.nnet.sigmoid(T.dot(l1,self.W1) + self.b1)
         # l2 = T.tanh(T.dot(l1,self.W1) + self.b1)
-        l2 = T.dot(l1,self.W1) + self.b1
+        l2 = T.dot(l1, self.W1) + self.b1
 
         x = l0
         y = T.dmatrix("y")
-        W_penalization = 0.0001*((self.W0**2).sum() + (self.W1**2).sum())
-        err = T.mean((l2-y)**2)# + W_penalization
-        self.W_penalization = function([],W_penalization)
+        W_penalization = 0.0001 * ((self.W0**2).sum() + (self.W1**2).sum())
+        err = T.mean((l2 - y)**2)  # + W_penalization
+        self.W_penalization = function([], W_penalization)
 
         g_W0 = T.grad(err, self.W0)
         g_W1 = T.grad(err, self.W1)
         g_b0 = T.grad(err, self.b0)
         g_b1 = T.grad(err, self.b1)
-        self.train = function([x,y], err, updates=[
-            (self.W0, self.W0-lrs*g_W0),
-            (self.W1, self.W1-lrs*g_W1),
-            (self.b0, self.b0-lrs*g_b0),
-            (self.b1, self.b1-lrs*g_b1),
-            (lrs, lrs*lr_decay)
+        self.train = function([x, y], err, updates=[
+            (self.W0, self.W0 - lrs * g_W0),
+            (self.W1, self.W1 - lrs * g_W1),
+            (self.b0, self.b0 - lrs * g_b0),
+            (self.b1, self.b1 - lrs * g_b1),
+            (lrs, lrs * lr_decay)
         ])
         self.predict = function([x], l2)
 
@@ -79,27 +80,25 @@ class MLP(object):
         mlp.b1.set_value(self.b1.get_value())
 
 
-
-
 if __name__ == "__main__":
 
     train_x = np.array([
-        [0,0],
-        [0,1],
-        [1,0],
-        [1,1],
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1],
     ], dtype=theano.config.floatX)
 
     train_y = np.array([
-        [0,0],
-        [1,0],
-        [1,0],
-        [0,1]
+        [0, 0],
+        [1, 0],
+        [1, 0],
+        [0, 1]
     ], dtype=theano.config.floatX)
 
     if len(sys.argv) == 2:
         print "... Loading model from file ", sys.argv[1]
-        with open(sys.argv[1] , "rb") as f:
+        with open(sys.argv[1], "rb") as f:
             mlp = pickle.load(f)
     else:
         print "... Creating model"

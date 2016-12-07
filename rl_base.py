@@ -1,3 +1,4 @@
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -25,7 +26,7 @@ class ReinforcementLearning(object):
         self.cumulative_reward = [0]
 
     def run_episode(self, state0):
-        """ Run an episode from the initial state to a terminal state """
+        """Run an episode from the initial state to a terminal state."""
         if state0 is None:
             state = self.world._gen_random_state()
         else:
@@ -37,9 +38,10 @@ class ReinforcementLearning(object):
                 action = self.world.random_action()
             else:
                 action = self.best_action(state)
+            state_backup = copy.deepcopy(state)
             new_state, reward = self.world._exe_action(state, action)
             self.curr_episode_rewards.append(reward)
-            self.learn(state, action, new_state, reward)
+            self.learn(state_backup, action, new_state, reward)
             state = new_state
         return steps
 
@@ -83,7 +85,7 @@ class ReinforcementLearning(object):
                    self.avg_reward, delimiter=",")
 
     def best_action(self, state):
-        """ Return index of best action given a state """
+        """Return index of best action given a state."""
         raise NotImplementedError()
 
     def learn(self, state, action, new_state, reward):

@@ -4,7 +4,7 @@
 # Módulos
 import time
 import sys
-from PIL import Image
+from PIL import Image  # prevent amazon to raise parachute segfault
 import os
 import pygame
 from pygame.locals import (
@@ -39,4 +39,4 @@ def run(graphics=True, human_speed=False):
 
 
 if __name__ == '__main__':
-    run(graphics=False)
+    run(graphics=True)

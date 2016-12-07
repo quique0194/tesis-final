@@ -24,6 +24,25 @@ class Player(object):
         mv = normalize_vector(mv, speed)
         return self.move(mv)
 
+    def move_dir(self, direc):
+        direc = direc.lower()
+        ms = self.max_speed
+        direc_to_mv = {
+            "none": [0, 0],
+            "top": [0, ms],
+            "left": [-ms, 0],
+            "right": [ms, 0],
+            "bottom": [0, -ms],
+            "topleft": [-ms, ms],
+            "topright": [ms, ms],
+            "bottomleft": [-ms, -ms],
+            "bottomright": [ms, -ms],
+        }
+        mv = [0, 0]
+        if direc in direc_to_mv.keys():
+            mv = direc_to_mv[direc]
+        self.move(mv)
+
     def repeat_last_move(self):
         if hasattr(self, 'prev_move') and self.prev_move is not None:
             return self.move(self.prev_move)
