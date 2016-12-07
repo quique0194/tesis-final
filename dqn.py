@@ -7,15 +7,17 @@ import six.moves.cPickle as pickle
 
 
 class DQN(ReinforcementLearning):
-    buffer_size = 100
-    batch_size = 10
-    clone_network_steps = 100
-    save_network_steps = 1000
+    buffer_size = 100   # how many (s, a, s', r) store to train
+    batch_size = 10     # how many (s, a, s', r) train at the same time
+    clone_network_steps = 100    # how many learn cycles to clone net
+    save_network_steps = 1000    # how many learn cycles to save networkt
 
-    def __init__(self, network_name=None, *args, **kwargs):
+    def __init__(self, network_name=None, data_filename=None,
+                 *args, **kwargs):
         super(DQN, self).__init__(*args, **kwargs)
         state_size = self.world.state_parser.state_size()
         self.network_name = network_name
+        self.data_filename = data_filename
         if network_name and os.path.exists(network_name):
             print "LOADING NETWORK FROM:", network_name
             with open(network_name, "rb") as f:
@@ -69,6 +71,7 @@ class DQN(ReinforcementLearning):
         if self.steps_since_last_save_net >= self.save_network_steps:
             self.steps_since_last_save_net = 0
             self.save_net()
+            self.save_data(self.data_filename or "rl")
         self.err.append(e.mean())
 
     def save_net(self):
@@ -81,6 +84,8 @@ class DQN(ReinforcementLearning):
         super(DQN, self).train_step(i)
 
     def save_data(self, name="rl"):
+        print "SAVING DATA TO:", name
         super(DQN, self).save_data(name)
-        np.savetxt(name + "_" + "error.csv",
-                   self.err, delimiter=",")
+        fhandle = open(name + "_" + "error.csv", "a")
+        np.savetxt(fhandle, self.err, delimiter=",")
+        self.err = []

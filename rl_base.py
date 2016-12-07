@@ -79,10 +79,13 @@ class ReinforcementLearning(object):
     # OVERRIDE THE FOLLOWING METHODS
     ###########################################################################
     def save_data(self, name="rl"):
-        np.savetxt(name + "_" + "cumulative_reward.csv",
-                   self.cumulative_reward, delimiter=",")
-        np.savetxt(name + "_" + "avg_reward.csv",
-                   self.avg_reward, delimiter=",")
+        cr_handle = file(name + "_" + "cumulative_reward.csv", "a")
+        np.savetxt(cr_handle,
+                   self.cumulative_reward[:-1], delimiter=",")
+        self.cumulative_reward = self.cumulative_reward[-1:]
+        ar_handle = file(name + "_" + "avg_reward.csv", "a")
+        np.savetxt(ar_handle, self.avg_reward[:-1], delimiter=",")
+        self.avg_reward = self.avg_reward[-1:]
 
     def best_action(self, state):
         """Return index of best action given a state."""
