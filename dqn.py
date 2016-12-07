@@ -1,24 +1,33 @@
 import random
-
+import os
 from mlp import MLP
 import numpy as np
 from rl_base import ReinforcementLearning
+import six.moves.cPickle as pickle
 
 
 class DQN(ReinforcementLearning):
     buffer_size = 100
     batch_size = 10
     clone_network_steps = 100
+    save_network_steps = 1000
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, network_name=None, *args, **kwargs):
         super(DQN, self).__init__(*args, **kwargs)
         state_size = self.world.state_parser.state_size()
-        self.Q = MLP(state_size, state_size / 2,
-                     self.world.number_of_actions())
+        self.network_name = network_name
+        if network_name and os.path.exists(network_name):
+            print "LOADING NETWORK FROM:", network_name
+            with open(network_name, "rb") as f:
+                self.Q = pickle.load(f)
+        else:
+            self.Q = MLP(state_size, state_size / 2,
+                         self.world.number_of_actions())
         self.Q_ = self.Q.clone()
         self.D = []
         self.err = []
         self.updates = 0
+        self.steps_since_last_save_net = 0
 
     def best_action(self, state):
         y0 = self.Q.predict([state])
@@ -53,11 +62,20 @@ class DQN(ReinforcementLearning):
         y0[np.arange(len(y0)), actions] = obj
         e = self.Q.train(states, y0)
         self.updates += 1
+        self.steps_since_last_save_net += 1
         if self.updates >= self.clone_network_steps:
             self.updates = 0
             self.Q.clone_in_existing_mlp(self.Q_)
-            self.graph_info()
+        if self.steps_since_last_save_net >= self.save_network_steps:
+            self.steps_since_last_save_net = 0
+            self.save_net()
         self.err.append(e.mean())
+
+    def save_net(self):
+        if self.network_name:
+            print "SAVING NETWORK TO", self.network_name
+            with open(self.network_name, "wb") as f:
+                pickle.dump(self.Q, f)
 
     def train_step(self, i):
         super(DQN, self).train_step(i)

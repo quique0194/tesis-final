@@ -115,15 +115,19 @@ if __name__ == "__main__":
 
     DIM = 13
 
-    rl = DQN(SoccerWorld(graphics=True, actions=actions,
+    rl = DQN("soccerdata/qmlp.pkl",
+             SoccerWorld(graphics=True, actions=actions,
                          state_parser=SoccerStateParser()))
     rl.random_prob = 0.75
     rl.buffer_size = 10
     rl.batch_size = 3
     rl.clone_network_steps = 50
+    rl.train_info_steps = 1
+    rl.show_progress = False
+
     try:
-        rl.train(10)
+        rl.train(100)
     finally:
         print "SAVING FILES...",
-        rl.save_data("graph/dqn_gw_" + str(DIM))
+        rl.save_data("soccerdata/")
         print "DONE"
