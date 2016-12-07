@@ -7,6 +7,7 @@ from ball import Ball
 from settings import red, blue, black, white, goals
 from utils import get_goal_rect
 import settings
+from soccersim.utils import dist
 
 
 class Match(object):
@@ -27,20 +28,24 @@ class Match(object):
 
     def reset(self):
         self.red_team = [
-            Player(random.uniform(-1, 0), random.uniform(-1, 1), red),
-            Player(random.uniform(-1, 0), random.uniform(-1, 1), red),
-            Player(random.uniform(-1, 0), random.uniform(-1, 1), red),
+            Player(random.uniform(-1, 0), random.uniform(-1, 1)),
+            Player(random.uniform(-1, 0), random.uniform(-1, 1)),
+            Player(random.uniform(-1, 0), random.uniform(-1, 1)),
         ]
         self.blue_team = [
-            Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
-            Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
-            Player(random.uniform(0, 1), random.uniform(-1, 1), blue),
+            Player(random.uniform(0, 1), random.uniform(-1, 1)),
+            Player(random.uniform(0, 1), random.uniform(-1, 1)),
+            Player(random.uniform(0, 1), random.uniform(-1, 1)),
         ]
+        # self.ball = Ball(random.uniform(0, 1), random.uniform(-1, 1))
+        self.ball = Ball(0, 0)
+        while dist(self.blue_team[1].pos, self.ball.pos) > 0.2:
+            self.blue_team[1] = Player(random.uniform(0, 1),
+                                       random.uniform(-1, 1))
         self.red_team = self.red_team[:self.red_players]
         self.blue_team = self.blue_team[:self.blue_players]
         self.blue_score = 0
         self.red_score = 0
-        self.ball = Ball(random.uniform(-1, 0), random.uniform(-1, 1))
         self.tic = 0
 
     def __init__(self, red_players=3, blue_players=3, red_strategy=None,
@@ -52,7 +57,8 @@ class Match(object):
         self.red_strategy = red_strategy
         self.blue_strategy = blue_strategy
         self.last_blue_score = 0    # blue point earned on the last tic
-        self.terminal = False       # if match is in a terminal state
+        self.any_team_scored = False       # if any team already scored
+        self.blue_kicked_at_tic = 0
 
     def draw_goals(self, screen):
         for goal in goals:
@@ -68,8 +74,10 @@ class Match(object):
             screen.blit(self.field, (0, 0))       # soccer field background
         else:
             screen.fill(Color("white"))     # white background
-        for player in self.red_team + self.blue_team:
-            player.draw(screen)
+        for player in self.red_team:
+            player.draw(screen, red)
+        for player in self.blue_team:
+            player.draw(screen, blue)
         font = pygame.font.Font(None, 30)
         if not draw_to_img:
             ren = font.render("Blue score: " + str(self.blue_score),
@@ -93,6 +101,7 @@ class Match(object):
             self.last_blue_score = -1
         for player in self.blue_team:
             if player.kicked:
+                self.blue_kicked_at_tic = self.tic
                 player.kicked = False
                 self.last_blue_score = 10
         for player in self.red_team:
@@ -104,7 +113,7 @@ class Match(object):
         self.blue_score = self.blue_score + self.last_blue_score
 
     def run(self):
-        if self.terminal:
+        if self.any_team_scored:
             self.reset()
         if self.red_strategy:
             self.red_strategy(self.red_team, self.blue_team, self.ball, side=0,
@@ -116,7 +125,7 @@ class Match(object):
         # TODO: calculate_red_score()
         gol_of = self.is_ball_in_goal()
         if gol_of is not None:
-            self.terminal = True
+            self.any_team_scored = True
             print "GOL!!!!!!!!!!!", gol_of
         self.calculate_blue_score()
         self.tic += 1

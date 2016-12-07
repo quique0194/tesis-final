@@ -58,6 +58,7 @@ class SoccerWorld(World):
         def dqn_player(team, opp, ball, side=0, tic=0):
             auto_goalkeeper(team, 0, opp, ball, side, tic)
             team[1].move_dir(action["move"])
+            team[1].walk_kick(ball)
 
         self.match.blue_strategy = dqn_player
         self.match.run()
@@ -75,9 +76,18 @@ class SoccerWorld(World):
 
     def isterminal(self, state):
         self.match.set_state(state)
-        return self.match.terminal
+        if self.match.any_team_scored:
+            return True
+        # if last kick was 1000 tics ago
+        if self.match.tic - self.match.blue_kicked_at_tic > 1000:
+            return True
 
     def gen_random_state(self):
+        self.match = Match(
+            2, 2,
+            red_strategy=None,
+            blue_strategy=None,
+        )
         return self.match.get_state()
 
 
@@ -112,7 +122,7 @@ if __name__ == "__main__":
     rl.batch_size = 3
     rl.clone_network_steps = 50
     try:
-        rl.train(3)
+        rl.train(10)
     finally:
         print "SAVING FILES...",
         rl.save_data("graph/dqn_gw_" + str(DIM))

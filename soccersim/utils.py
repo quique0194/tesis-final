@@ -46,6 +46,10 @@ def angle_to(a, b):
     return np.degrees(ret)
 
 
+def angle_of(a):
+    return angle_to([0, 0], a)
+
+
 def get_goal_rect(goal):
     top_left = pixelof(goal[0] - goal_width, goal[1] - goal_height)
     return Rect(top_left, (goal_width * width, goal_height * height))

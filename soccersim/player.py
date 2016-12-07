@@ -1,22 +1,28 @@
 import pygame
-from settings import blue
-from utils import pixelof, dist, size2pixels, normalize_vector, vector_to
+from utils import (
+    pixelof,
+    dist,
+    size2pixels,
+    normalize_vector,
+    vector_to,
+    angle_of,
+)
 
 
 class Player(object):
 
-    def __init__(self, x, y, team=blue, max_speed=0.01):
+    def __init__(self, x, y, max_speed=0.01):
         self.pos = [x, y]
-        self.team = team
         self.size = 0.025
         self.kicked = False    # Used to calculate score
         self.max_speed = max_speed
+        self.prev_move = None
 
-    def draw(self, screen):
+    def draw(self, screen, color):
         size = size2pixels(self.size)
-        pygame.draw.circle(screen, self.team, pixelof(*self.pos),
+        pygame.draw.circle(screen, color, pixelof(*self.pos),
                            size / 3, 0)
-        pygame.draw.circle(screen, self.team, pixelof(*self.pos), size, 1)
+        pygame.draw.circle(screen, color, pixelof(*self.pos), size, 1)
 
     def move_to(self, dest, speed=0.005):
         speed = min(speed, self.max_speed)
@@ -44,7 +50,7 @@ class Player(object):
         self.move(mv)
 
     def repeat_last_move(self):
-        if hasattr(self, 'prev_move') and self.prev_move is not None:
+        if self.prev_move:
             return self.move(self.prev_move)
         else:
             return self.move([0, 0])
@@ -83,3 +89,11 @@ class Player(object):
         if self.can_move_ball(ball):
             self.kicked = True
             ball.kick(power, angle)
+
+    def walk_kick(self, ball):
+        """Kick the ball in the direction it is walking."""
+        if not self.prev_move:
+            return
+        if self.can_move_ball(ball):
+            self.kicked = True
+            ball.kick(0.1, angle_of(self.prev_move))
