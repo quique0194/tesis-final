@@ -1,10 +1,10 @@
 #!/bin/bash
 
 sudo apt-get update
-sudo apt-get install -y git build-essential python-dev
+sudo apt-get install -y git build-essential python-dev python-tk
 
 # install pip
 curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
 sudo python get-pip.py
 
-sudo pip install numpy pygame theano ipython pillow
+sudo pip install numpy pygame theano ipython pillow matplotlib
