@@ -4,7 +4,6 @@
 # Módulos
 import time
 import sys
-from PIL import Image  # prevent amazon to raise parachute segfault
 import os
 import pygame
 from pygame.locals import (
@@ -12,7 +11,10 @@ from pygame.locals import (
 )
 from settings import width, height
 from match import Match
-from strategies import auto_strategy, manual_strategy
+from strategies import (
+    auto_strategy,
+    # manual_strategy,
+)
 
 
 def run(graphics=True, human_speed=False):
