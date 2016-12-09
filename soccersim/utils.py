@@ -24,12 +24,12 @@ def vector_to(a, b):
 
 def normalize_vector(a, limit):
     # limit must be positive
-    comp = max(abs(a[0]), abs(a[1]))
-    if comp < limit:
+    d = dist([0, 0], a)
+    if d == 0:
         return a
-    factor = comp / limit
     a = tonp(a)
-    return a / factor
+    a = a / d   # make vector of size 1
+    return a * limit
 
 
 def pixelof(x, y):

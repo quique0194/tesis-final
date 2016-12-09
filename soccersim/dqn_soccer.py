@@ -6,7 +6,7 @@ from dqn import DQN
 from model import StateParser, World
 from player import Player
 from ball import Ball
-from soccersim.strategies import auto_goalkeeper
+from soccersim.strategies import StrategyBase
 from soccersim.settings import width, height
 from soccersim.match import Match
 
@@ -21,7 +21,6 @@ class SoccerStateParser(StateParser):
             "red_team": [Player(n[0], n[1]), Player(n[2], n[3])],
             "blue_team": [Player(n[4], n[5]), Player(n[6], n[7])],
             "ball": Ball(n[8], n[9]),
-            "tic": n[10],
         }
 
     def dump(self, state):
@@ -29,11 +28,21 @@ class SoccerStateParser(StateParser):
         for player in state["red_team"] + state["blue_team"]:
             ret += player.pos
         ret += state["ball"].pos
-        ret.append(state["tic"])
         return ret
 
     def state_size(self):
-        return 11
+        return 10
+
+
+class DQNStrategy(StrategyBase):
+
+    def set_action(self, dir):
+        self.dir = dir
+
+    def run(self, team, opp, ball, side=0, tic=0):
+        self.auto_goalkeeper(team, 0, opp, ball, side, tic)
+        team[1].move_dir(self.dir)
+        team[1].walk_kick(ball)
 
 
 class SoccerWorld(World):
@@ -45,22 +54,19 @@ class SoccerWorld(World):
         pygame.init()
         self.screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption("Soccer")
+
+        self.dqn_strategy = DQNStrategy()
         self.match = Match(
             2, 2,
-            red_strategy=None,
-            blue_strategy=None,
+            red_strategy=StrategyBase(),
+            blue_strategy=self.dqn_strategy,
         )
         super(SoccerWorld, self).__init__(*args, **kwargs)
 
     def exe_action(self, state, action):
         self.match.set_state(state)
 
-        def dqn_player(team, opp, ball, side=0, tic=0):
-            auto_goalkeeper(team, 0, opp, ball, side, tic)
-            team[1].move_dir(action["move"])
-            team[1].walk_kick(ball)
-
-        self.match.blue_strategy = dqn_player
+        self.dqn_strategy.set_action(action["move"])
         self.match.run()
 
         if self.graphics:
@@ -76,17 +82,14 @@ class SoccerWorld(World):
 
     def isterminal(self, state):
         self.match.set_state(state)
-        if self.match.any_team_scored:
-            return True
-        # if last kick was 1000 tics ago
-        if self.match.tic - self.match.blue_kicked_at_tic > 1000:
+        if self.match.is_finished():
             return True
 
     def gen_random_state(self):
         self.match = Match(
             2, 2,
-            red_strategy=None,
-            blue_strategy=None,
+            red_strategy=StrategyBase(),
+            blue_strategy=self.dqn_strategy,
         )
         return self.match.get_state()
 
@@ -102,24 +105,16 @@ if __name__ == "__main__":
         {"move": "topright", "kick": False},
         {"move": "bottomleft", "kick": False},
         {"move": "bottomright", "kick": False},
-        {"move": "none", "kick": True},
-        {"move": "top", "kick": True},
-        {"move": "left", "kick": True},
-        {"move": "right", "kick": True},
-        {"move": "bottom", "kick": True},
-        {"move": "topleft", "kick": True},
-        {"move": "topright", "kick": True},
-        {"move": "bottomleft", "kick": True},
-        {"move": "bottomright", "kick": True},
     ]
 
     DIM = 13
 
     rl = DQN("soccerdata/qmlp.pkl", "soccerdata/",
-             SoccerWorld(graphics=False, actions=actions,
+             SoccerWorld(graphics=True, actions=actions,
                          state_parser=SoccerStateParser()))
 
-    rl.random_prob = 0.75
+    # rl.random_prob = 0.75
+    rl.random_prob = 0.1
     rl.buffer_size = 2000
     rl.batch_size = 100
     rl.clone_network_steps = 50

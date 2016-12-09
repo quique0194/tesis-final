@@ -11,10 +11,7 @@ from pygame.locals import (
 )
 from settings import width, height
 from match import Match
-from strategies import (
-    auto_strategy,
-    # manual_strategy,
-)
+from strategies import StrategyBase, ManualStrategy
 
 
 def run(graphics=True, human_speed=False):
@@ -25,8 +22,8 @@ def run(graphics=True, human_speed=False):
     pygame.display.set_caption("Soccer")
     match = Match(
         2, 2,
-        red_strategy=auto_strategy,
-        blue_strategy=auto_strategy,
+        red_strategy=StrategyBase(),
+        blue_strategy=ManualStrategy(),
     )
 
     while True:
@@ -41,4 +38,4 @@ def run(graphics=True, human_speed=False):
 
 
 if __name__ == '__main__':
-    run(graphics=True)
+    run(graphics=True, human_speed=True)

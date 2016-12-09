@@ -17,19 +17,17 @@ class Match(object):
             "red_team": self.red_team,
             "blue_team": self.blue_team,
             "ball": self.ball,
-            "tic": self.tic,
         }
 
     def set_state(self, state):
         self.red_team = state["red_team"]
         self.blue_team = state["blue_team"]
         self.ball = state["ball"]
-        self.tic = state["tic"]
 
     def reset(self):
         self.red_team = [
-            Player(random.uniform(-1, 0), random.uniform(-1, 1)),
-            Player(random.uniform(-1, 0), random.uniform(-1, 1)),
+            Player(-0.8, 0),
+            Player(-0.2, 0),
             Player(random.uniform(-1, 0), random.uniform(-1, 1)),
         ]
         self.blue_team = [
@@ -44,6 +42,9 @@ class Match(object):
                                        random.uniform(-1, 1))
         self.red_team = self.red_team[:self.red_players]
         self.blue_team = self.blue_team[:self.blue_players]
+
+    def new_match(self):
+        self.reset()
         self.blue_score = 0
         self.red_score = 0
         self.tic = 0
@@ -52,12 +53,12 @@ class Match(object):
                  blue_strategy=None):
         self.red_players = red_players
         self.blue_players = blue_players
-        self.reset()
+        self.new_match()
         self.field = pygame.image.load("soccersim/soccer_field.png")
         self.red_strategy = red_strategy
         self.blue_strategy = blue_strategy
         self.last_blue_score = 0    # blue point earned on the last tic
-        self.any_team_scored = False       # if any team already scored
+        self.team_scored = None
         self.blue_kicked_at_tic = 0
 
     def draw_goals(self, screen):
@@ -108,24 +109,32 @@ class Match(object):
             if player.kicked:
                 player.kicked = False
                 self.last_blue_score = -10
-        if self.is_ball_in_goal() == 1:
+        if self.team_scored == 1:
             self.last_blue_score = 1000
+        elif self.team_scored == 0:
+            self.last_blue_score = -1000
         self.blue_score = self.blue_score + self.last_blue_score
 
     def run(self):
-        if self.any_team_scored:
+        if self.tic == 5001:
+            self.new_match()
+        if self.team_scored is not None:
+            self.team_scored = None
             self.reset()
         if self.red_strategy:
-            self.red_strategy(self.red_team, self.blue_team, self.ball, side=0,
-                              tic=self.tic)
+            self.red_strategy.run(self.red_team, self.blue_team, self.ball,
+                                  side=0, tic=self.tic)
         if self.blue_strategy:
-            self.blue_strategy(self.blue_team, self.red_team, self.ball,
-                               side=1, tic=self.tic)
+            self.blue_strategy.run(self.blue_team, self.red_team, self.ball,
+                                   side=1, tic=self.tic)
         self.ball.update()
         # TODO: calculate_red_score()
         gol_of = self.is_ball_in_goal()
         if gol_of is not None:
-            self.any_team_scored = True
-            print "GOL!!!!!!!!!!!", gol_of
+            self.team_scored = not gol_of
+            print "GOL!!!!!!!!!!!", not gol_of
         self.calculate_blue_score()
         self.tic += 1
+
+    def is_finished(self):
+        return self.tic == 5000

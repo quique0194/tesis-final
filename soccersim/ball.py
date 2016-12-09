@@ -9,7 +9,7 @@ class Ball(object):
     def __init__(self, x, y):
         self.pos = [x, y]
         self.traveled = 0
-        self.speed = 0.015
+        self.speed = 0.02
         self.power = 0
         self.angle = 0
 

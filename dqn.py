@@ -23,7 +23,7 @@ class DQN(ReinforcementLearning):
             with open(network_name, "rb") as f:
                 self.Q = pickle.load(f)
         else:
-            self.Q = MLP(state_size, state_size / 2,
+            self.Q = MLP(state_size, state_size * 2,
                          self.world.number_of_actions())
         self.Q_ = self.Q.clone()
         self.D = []
