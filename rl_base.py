@@ -32,16 +32,17 @@ class ReinforcementLearning(object):
         else:
             state = state0
         steps = 0
-        while not self.world._isterminal(state):
+        while not self.world.isterminal():
             steps += 1
             if np.random.rand() <= self.random_prob:
                 action = self.world.random_action()
             else:
                 action = self.best_action(state)
             state_backup = copy.deepcopy(state)
-            new_state, reward = self.world._exe_action(state, action)
+            new_state, reward = self.world._exe_action(action)
             self.curr_episode_rewards.append(reward)
-            self.learn(state_backup, action, new_state, reward)
+            self.learn(state_backup, action, new_state, reward,
+                       self.world.isterminal())
             state = new_state
         return steps
 
@@ -54,7 +55,7 @@ class ReinforcementLearning(object):
         plt.draw()
         plt.pause(0.0001)
 
-    def train_step(self, i):
+    def train_episode(self, i):
         if i % self.train_info_steps == 0 and self.print_episodes:
             print "Episode", i
         if i % self.train_info_steps == 0 and self.show_progress:
@@ -71,7 +72,7 @@ class ReinforcementLearning(object):
 
     def train(self, episodes=100):
         for i in xrange(episodes):
-            self.train_step(i)
+            self.train_episode(i)
         if self.show_progress:
             plt.show()
 

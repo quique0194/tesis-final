@@ -60,6 +60,7 @@ class Match(object):
         self.last_blue_score = 0    # blue point earned on the last tic
         self.team_scored = None
         self.blue_kicked_at_tic = 0
+        self.marcador = [0, 0]
 
     def draw_goals(self, screen):
         for goal in goals:
@@ -129,12 +130,17 @@ class Match(object):
                                    side=1, tic=self.tic)
         self.ball.update()
         # TODO: calculate_red_score()
-        gol_of = self.is_ball_in_goal()
-        if gol_of is not None:
-            self.team_scored = not gol_of
-            print "GOL!!!!!!!!!!!", not gol_of
+        gol_to = self.is_ball_in_goal()
+        if gol_to is not None:
+            self.team_scored = not gol_to
+            self.marcador[not gol_to] += 1
+            print "GOL!!!!!!!!!!!", not gol_to
         self.calculate_blue_score()
         self.tic += 1
 
     def is_finished(self):
         return self.tic == 5000
+
+    def blue_gd(self):
+        """Blue gol difference."""
+        return self.marcador[1] - self.marcador[0]

@@ -7,16 +7,12 @@ class StateParser(object):
     # OVERRIDE THE FOLLOWING METHODS
     ###########################################################################
 
-    def load(self, n):
-        """ Convert a state representation usable by learning to a state """
-        raise NotImplementedError()
-
     def dump(self):
-        """ Convert a state to a representation usable by learning """
+        """Convert a state to a representation usable by learning."""
         raise NotImplementedError()
 
     def state_size(self):
-        """ Implement in case state is a np.array instead of an int """
+        """Implement in case state is a np.array instead of an int."""
         return 1
 
 
@@ -26,17 +22,11 @@ class World(object):
         self.actions = actions
         self.state_parser = state_parser
 
-    def _exe_action(self, state, action):
-        """ To be called with state and action representations """
-        state = self.state_parser.load(state)
+    def _exe_action(self, action):
+        """To be called with state and action representations."""
         action = self.actions[action]
-        new_state, reward = self.exe_action(state, action)
+        new_state, reward = self.exe_action(action)
         return self.state_parser.dump(new_state), reward
-
-    def _isterminal(self, state):
-        """ To be called with a state representation """
-        state = self.state_parser.load(state)
-        return self.isterminal(state)
 
     def _gen_random_state(self):
         state = self.gen_random_state()
@@ -53,15 +43,16 @@ class World(object):
     # OVERRIDE THE FOLLOWING METHODS
     ###########################################################################
 
-    def exe_action(self, state, action):
+    def exe_action(self, action):
         """
-            Called with real state and action
-            Must return (new_state, reward)
+        Called with real action. Must return (new_state, reward).
+
+        Must move World to the next step automatically
         """
         raise NotImplementedError()
 
-    def isterminal(self, state):
-        """ To be called with a real state """
+    def isterminal(self):
+        """To be called with a real state."""
         raise NotImplementedError()
 
     def number_of_states(self):

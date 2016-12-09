@@ -1,3 +1,4 @@
+import numpy as np
 import os
 import sys
 import pygame
@@ -15,13 +16,6 @@ class SoccerStateParser(StateParser):
 
     def __init__(self, *args, **kwargs):
         super(SoccerStateParser, self).__init__(*args, **kwargs)
-
-    def load(self, n):
-        return {
-            "red_team": [Player(n[0], n[1]), Player(n[2], n[3])],
-            "blue_team": [Player(n[4], n[5]), Player(n[6], n[7])],
-            "ball": Ball(n[8], n[9]),
-        }
 
     def dump(self, state):
         ret = []
@@ -63,9 +57,7 @@ class SoccerWorld(World):
         )
         super(SoccerWorld, self).__init__(*args, **kwargs)
 
-    def exe_action(self, state, action):
-        self.match.set_state(state)
-
+    def exe_action(self, action):
         self.dqn_strategy.set_action(action["move"])
         self.match.run()
 
@@ -80,8 +72,7 @@ class SoccerWorld(World):
         reward = self.match.last_blue_score
         return self.match.get_state(), reward
 
-    def isterminal(self, state):
-        self.match.set_state(state)
+    def isterminal(self):
         if self.match.is_finished():
             return True
 
@@ -92,6 +83,28 @@ class SoccerWorld(World):
             blue_strategy=self.dqn_strategy,
         )
         return self.match.get_state()
+
+
+class SoccerDQN(DQN):
+
+    def __init__(self, *args, **kwargs):
+        super(SoccerDQN, self).__init__(*args, **kwargs)
+        self.final_scores = []
+        self.match_gols = []
+
+    def train_episode(self, i):
+        super(SoccerDQN, self).train_episode(i)
+        self.final_scores.append(self.world.match.blue_score)
+        self.match_gols.append(self.world.match.blue_gd())
+
+    def save_data(self, name="soccer_rl"):
+        super(SoccerDQN, self).save_data(name)
+        fhandle = open(name + "_" + "final_scores.csv", "a")
+        np.savetxt(fhandle, self.final_scores, delimiter=",")
+        self.final_scores = []
+        fhandle = open(name + "_" + "goles.csv", "a")
+        np.savetxt(fhandle, self.match_gols, delimiter=",")
+        self.match_gols = []
 
 
 if __name__ == "__main__":
@@ -109,18 +122,24 @@ if __name__ == "__main__":
 
     DIM = 13
 
-    rl = DQN("soccerdata/qmlp.pkl", "soccerdata/",
-             SoccerWorld(graphics=True, actions=actions,
-                         state_parser=SoccerStateParser()))
+    rl = SoccerDQN(network_name="soccerdata/qmlp",
+                   data_filename="soccerdata/",
+                   world=SoccerWorld(graphics=False, actions=actions,
+                                     state_parser=SoccerStateParser()),
+                   hidden_units=50)
 
-    # rl.random_prob = 0.75
-    rl.random_prob = 0.1
-    rl.buffer_size = 2000
-    rl.batch_size = 100
-    rl.clone_network_steps = 50
+    rl.random_prob = 0.75
+    rl.min_random_prob = 0.1
+    rl.random_prob_decay = 0.999  # Reach 0.1 random_prob in 2000 episodes
 
     rl.train_info_steps = 1
     rl.show_progress = False
+
+    rl.buffer_size = 2000
+    rl.batch_size = 100
+    rl.clone_network_steps = 100
+    rl.save_network_steps = 1000
+    rl.backup_network_episodes = 100
 
     try:
         rl.train(5000)
