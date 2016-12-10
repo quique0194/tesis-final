@@ -14,13 +14,22 @@ class DQN(ReinforcementLearning):
     backup_network_episodes = 100     # how many episodes to create a backup
 
     def __init__(self, network_name=None, data_filename=None,
-                 hidden_units=None, *args, **kwargs):
+                 hidden_units=None, add_more_experience=True,
+                 make_net_learn=True, *args, **kwargs):
         super(DQN, self).__init__(*args, **kwargs)
         state_size = self.world.state_parser.state_size()
         if hidden_units is None:
             hidden_units = state_size / 2
+        self.add_more_experience = add_more_experience
+        self.make_net_learn = make_net_learn
         self.network_name = network_name
         self.data_filename = data_filename
+        # TODO: do not hardcode this part
+        self.batch_filename = "soccerdata/_batch.csv"
+        if os.path.exists(self.batch_filename):
+            print "LOADING BATCH FILE FROM", self.batch_filename
+            with open(self.batch_filename, "rb") as f:
+                self.D = pickle.load(f)
         if network_name and os.path.exists(network_name):
             print "LOADING NETWORK FROM:", network_name
             with open(network_name, "rb") as f:
@@ -52,7 +61,8 @@ class DQN(ReinforcementLearning):
                 np.array(rewards), np.array(terminals))
 
     def learn(self, state, action, new_state, reward, is_terminal=False):
-        self.D.append((state, action, new_state, reward, is_terminal))
+        if self.add_more_experience:
+            self.D.append((state, action, new_state, reward, is_terminal))
         if len(self.D) > self.buffer_size:
             self.D = self.D[-self.buffer_size:]
         states, actions, new_states, rewards, terminals = self.get_batch()
@@ -68,7 +78,8 @@ class DQN(ReinforcementLearning):
         obj = np.array(obj)
         y0 = self.Q.predict(states)
         y0[np.arange(len(y0)), actions] = obj
-        e = self.Q.train(states, y0)
+        if self.make_net_learn:
+            e = self.Q.train(states, y0)
         self.updates += 1
         if self.updates % self.clone_network_steps == 0:
             self.Q.clone_in_existing_mlp(self.Q_)
@@ -97,3 +108,6 @@ class DQN(ReinforcementLearning):
         fhandle = open(name + "_" + "error.csv", "a")
         np.savetxt(fhandle, self.err, delimiter=",")
         self.err = []
+
+        with open(self.batch_filename, "wb") as f:
+            pickle.dump(self.D, f)

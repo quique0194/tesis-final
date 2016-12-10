@@ -5,7 +5,7 @@ import numpy as np
 
 class ReinforcementLearning(object):
     # Learning params
-    discount_rate = 0.9
+    discount_rate = 0.99
     random_prob = 1.0
     random_prob_decay = 0.95
     min_random_prob = 0.1
@@ -25,6 +25,13 @@ class ReinforcementLearning(object):
         self.avg_reward = []
         self.cumulative_reward = [0]
 
+    def choose_action(self, state):
+        if np.random.rand() <= self.random_prob:
+            action = self.world.random_action()
+        else:
+            action = self.best_action(state)
+        return action
+
     def run_episode(self, state0):
         """Run an episode from the initial state to a terminal state."""
         if state0 is None:
@@ -34,11 +41,8 @@ class ReinforcementLearning(object):
         steps = 0
         while not self.world.isterminal():
             steps += 1
-            if np.random.rand() <= self.random_prob:
-                action = self.world.random_action()
-            else:
-                action = self.best_action(state)
             state_backup = copy.deepcopy(state)
+            action = self.choose_action(state)
             new_state, reward = self.world._exe_action(action)
             self.curr_episode_rewards.append(reward)
             self.learn(state_backup, action, new_state, reward,
@@ -57,7 +61,7 @@ class ReinforcementLearning(object):
 
     def train_episode(self, i):
         if i % self.train_info_steps == 0 and self.print_episodes:
-            print "Episode", i
+            print "Episode", i, self.random_prob
         if i % self.train_info_steps == 0 and self.show_progress:
             self.graph_info()
         self.curr_episode_rewards = []
@@ -84,6 +88,7 @@ class ReinforcementLearning(object):
         np.savetxt(cr_handle,
                    self.cumulative_reward[:-1], delimiter=",")
         self.cumulative_reward = self.cumulative_reward[-1:]
+
         ar_handle = file(name + "_" + "avg_reward.csv", "a")
         np.savetxt(ar_handle, self.avg_reward[:-1], delimiter=",")
         self.avg_reward = self.avg_reward[-1:]

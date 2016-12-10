@@ -2,11 +2,11 @@ import numpy as np
 import os
 import sys
 import pygame
-from pygame.locals import QUIT
+from pygame.locals import K_DOWN, K_UP, K_LEFT, K_RIGHT, QUIT
 from dqn import DQN
 from model import StateParser, World
-from player import Player
-from ball import Ball
+# from player import Player
+# from ball import Ball
 from soccersim.strategies import StrategyBase
 from soccersim.settings import width, height
 from soccersim.match import Match
@@ -26,6 +26,12 @@ class SoccerStateParser(StateParser):
 
     def state_size(self):
         return 10
+
+
+class DoNothingStrategy(StrategyBase):
+
+    def run(self, team, opp, ball, side=0, tic=0):
+        pass
 
 
 class DQNStrategy(StrategyBase):
@@ -52,13 +58,13 @@ class SoccerWorld(World):
         self.dqn_strategy = DQNStrategy()
         self.match = Match(
             2, 2,
-            red_strategy=StrategyBase(),
+            red_strategy=DoNothingStrategy(),
             blue_strategy=self.dqn_strategy,
         )
         super(SoccerWorld, self).__init__(*args, **kwargs)
 
     def exe_action(self, action):
-        self.dqn_strategy.set_action(action["move"])
+        self.dqn_strategy.set_action(action)
         self.match.run()
 
         if self.graphics:
@@ -79,7 +85,7 @@ class SoccerWorld(World):
     def gen_random_state(self):
         self.match = Match(
             2, 2,
-            red_strategy=StrategyBase(),
+            red_strategy=DoNothingStrategy(),
             blue_strategy=self.dqn_strategy,
         )
         return self.match.get_state()
@@ -87,10 +93,30 @@ class SoccerWorld(World):
 
 class SoccerDQN(DQN):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, human_teacher=False, *args, **kwargs):
         super(SoccerDQN, self).__init__(*args, **kwargs)
+        self.human_teacher = human_teacher
         self.final_scores = []
         self.match_gols = []
+
+    def choose_action(self, state):
+        if self.human_teacher:
+            keys = pygame.key.get_pressed()
+            mv = ""
+            if keys[K_DOWN]:
+                mv += "bottom"
+            if keys[K_UP]:
+                mv += "top"
+            if keys[K_LEFT]:
+                mv += "left"
+            if keys[K_RIGHT]:
+                mv += "right"
+            try:
+                return self.world.actions.index(mv)
+            except ValueError:
+                return 0
+        else:
+            return super(DQN, self).choose_action(state)
 
     def train_episode(self, i):
         super(SoccerDQN, self).train_episode(i)
@@ -109,36 +135,42 @@ class SoccerDQN(DQN):
 
 if __name__ == "__main__":
     actions = [
-        {"move": "none", "kick": False},
-        {"move": "top", "kick": False},
-        {"move": "left", "kick": False},
-        {"move": "right", "kick": False},
-        {"move": "bottom", "kick": False},
-        {"move": "topleft", "kick": False},
-        {"move": "topright", "kick": False},
-        {"move": "bottomleft", "kick": False},
-        {"move": "bottomright", "kick": False},
+        "none",
+        "top",
+        "left",
+        "right",
+        "bottom",
+        "topleft",
+        "topright",
+        "bottomleft",
+        "bottomright",
     ]
 
     DIM = 13
 
-    rl = SoccerDQN(network_name="soccerdata/qmlp",
-                   data_filename="soccerdata/",
-                   world=SoccerWorld(graphics=False, actions=actions,
-                                     state_parser=SoccerStateParser()),
-                   hidden_units=50)
+    # TODO, construct world inside rl
+    rl = SoccerDQN(
+        human_teacher=False,
+        network_name="soccerdata/qmlp",
+        data_filename="soccerdata/",
+        world=SoccerWorld(graphics=True, actions=actions,
+                          state_parser=SoccerStateParser()),
+        hidden_units=500,
+        add_more_experience=False,
+        make_net_learn=True,
+    )
 
-    rl.random_prob = 0.75
-    rl.min_random_prob = 0.1
+    rl.random_prob = 0
+    rl.min_random_prob = 0
     rl.random_prob_decay = 0.999  # Reach 0.1 random_prob in 2000 episodes
 
     rl.train_info_steps = 1
     rl.show_progress = False
 
-    rl.buffer_size = 2000
-    rl.batch_size = 100
-    rl.clone_network_steps = 100
-    rl.save_network_steps = 1000
+    rl.buffer_size = 100000
+    rl.batch_size = 20
+    rl.clone_network_steps = 10000
+    rl.save_network_steps = 10000
     rl.backup_network_episodes = 100
 
     try:

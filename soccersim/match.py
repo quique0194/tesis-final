@@ -25,6 +25,7 @@ class Match(object):
         self.ball = state["ball"]
 
     def reset(self):
+        print "RESET"
         self.red_team = [
             Player(-0.8, 0),
             Player(-0.2, 0),
@@ -32,14 +33,14 @@ class Match(object):
         ]
         self.blue_team = [
             Player(random.uniform(0, 1), random.uniform(-1, 1)),
-            Player(random.uniform(0, 1), random.uniform(-1, 1)),
+            Player(random.uniform(-1, 1), random.uniform(-1, 1)),
             Player(random.uniform(0, 1), random.uniform(-1, 1)),
         ]
         # self.ball = Ball(random.uniform(0, 1), random.uniform(-1, 1))
-        self.ball = Ball(0, 0)
-        while dist(self.blue_team[1].pos, self.ball.pos) > 0.2:
-            self.blue_team[1] = Player(random.uniform(0, 1),
-                                       random.uniform(-1, 1))
+        self.ball = Ball(random.uniform(-0.8, 0.8), random.uniform(-0.8, 0.8))
+        # while dist(self.blue_team[1].pos, self.ball.pos) > 0.2:
+        #     self.blue_team[1] = Player(random.uniform(0, 1),
+        #                                random.uniform(-1, 1))
         self.red_team = self.red_team[:self.red_players]
         self.blue_team = self.blue_team[:self.blue_players]
 
