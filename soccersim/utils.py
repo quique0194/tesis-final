@@ -16,6 +16,12 @@ def dist(a, b):
     return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
+def angle_diff(a, b):
+    diff = a - b
+    diff = (diff + 180) % 360 - 180
+    return diff
+
+
 def vector_to(a, b):
     a = tonp(a)
     b = tonp(b)

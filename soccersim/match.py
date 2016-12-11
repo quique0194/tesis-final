@@ -5,9 +5,8 @@ from pygame import Color
 from player import Player
 from ball import Ball
 from settings import red, blue, black, white, goals
-from utils import get_goal_rect
 import settings
-from soccersim.utils import dist
+from utils import get_goal_rect
 
 
 class Match(object):
@@ -100,8 +99,6 @@ class Match(object):
 
     def calculate_blue_score(self):
         self.last_blue_score = 0
-        if self.tic % 10 == 0:
-            self.last_blue_score = -1
         for player in self.blue_team:
             if player.kicked:
                 self.blue_kicked_at_tic = self.tic

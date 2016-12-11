@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import os
 import sys
@@ -10,6 +11,7 @@ from model import StateParser, World
 from soccersim.strategies import StrategyBase
 from soccersim.settings import width, height
 from soccersim.match import Match
+from soccersim.utils import angle_of
 
 
 class SoccerStateParser(StateParser):
@@ -93,30 +95,10 @@ class SoccerWorld(World):
 
 class SoccerDQN(DQN):
 
-    def __init__(self, human_teacher=False, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(SoccerDQN, self).__init__(*args, **kwargs)
-        self.human_teacher = human_teacher
         self.final_scores = []
         self.match_gols = []
-
-    def choose_action(self, state):
-        if self.human_teacher:
-            keys = pygame.key.get_pressed()
-            mv = ""
-            if keys[K_DOWN]:
-                mv += "bottom"
-            if keys[K_UP]:
-                mv += "top"
-            if keys[K_LEFT]:
-                mv += "left"
-            if keys[K_RIGHT]:
-                mv += "right"
-            try:
-                return self.world.actions.index(mv)
-            except ValueError:
-                return 0
-        else:
-            return super(DQN, self).choose_action(state)
 
     def train_episode(self, i):
         super(SoccerDQN, self).train_episode(i)
@@ -131,6 +113,54 @@ class SoccerDQN(DQN):
         fhandle = open(name + "_" + "goles.csv", "a")
         np.savetxt(fhandle, self.match_gols, delimiter=",")
         self.match_gols = []
+
+
+class HumanTeacher(object):
+
+    def choose_action(self, state, world):
+        keys = pygame.key.get_pressed()
+        mv = ""
+        if keys[K_DOWN]:
+            mv += "bottom"
+        if keys[K_UP]:
+            mv += "top"
+        if keys[K_LEFT]:
+            mv += "left"
+        if keys[K_RIGHT]:
+            mv += "right"
+        try:
+            return world.actions.index(mv)
+        except ValueError:
+            return 0
+
+
+class AutomaticTeacher(StrategyBase):
+
+    def run(*args, **kwargs):
+        # This method won't be used
+        pass
+
+    def choose_action(self, state, world):
+        world = copy.deepcopy(world)
+        self.auto_attacker2(world.match.blue_team, 1, world.match.red_team,
+                            world.match.ball, side=1, tic=world.match.tic)
+
+        # Convert movement of player to RL action
+        pm = world.match.blue_team[1].prev_move
+        if pm is None:
+            return 0
+        if pm[0] == 0 and pm[1] == 0:
+            return 0
+        angles = [90, -90, -179, 0, 179, 45, 135, -135, -45]
+        actions = ["bottom", "top", "left", "right", "left", "bottomright",
+                   "bottomleft", "topleft", "topright"]
+        target = angle_of(pm)
+        for idx, angle in enumerate(angles):
+            if abs(angle - target) <= 23:
+                return world.actions.index(actions[idx])
+
+        print "ANGULO NO IDENTIFICADO:", target
+        return 0
 
 
 if __name__ == "__main__":
@@ -150,13 +180,13 @@ if __name__ == "__main__":
 
     # TODO, construct world inside rl
     rl = SoccerDQN(
-        human_teacher=False,
+        teacher=AutomaticTeacher(),
         network_name="soccerdata/qmlp",
         data_filename="soccerdata/",
         world=SoccerWorld(graphics=True, actions=actions,
                           state_parser=SoccerStateParser()),
         hidden_units=500,
-        add_more_experience=False,
+        add_more_experience=True,
         make_net_learn=True,
     )
 

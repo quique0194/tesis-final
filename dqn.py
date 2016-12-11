@@ -15,12 +15,14 @@ class DQN(ReinforcementLearning):
 
     def __init__(self, network_name=None, data_filename=None,
                  hidden_units=None, add_more_experience=True,
-                 make_net_learn=True, *args, **kwargs):
+                 make_net_learn=True, teacher=None,
+                 *args, **kwargs):
         super(DQN, self).__init__(*args, **kwargs)
         state_size = self.world.state_parser.state_size()
         if hidden_units is None:
             hidden_units = state_size / 2
         self.add_more_experience = add_more_experience
+        self.teacher = teacher
         self.make_net_learn = make_net_learn
         self.network_name = network_name
         self.data_filename = data_filename
@@ -30,6 +32,8 @@ class DQN(ReinforcementLearning):
             print "LOADING BATCH FILE FROM", self.batch_filename
             with open(self.batch_filename, "rb") as f:
                 self.D = pickle.load(f)
+        else:
+            self.D = []
         if network_name and os.path.exists(network_name):
             print "LOADING NETWORK FROM:", network_name
             with open(network_name, "rb") as f:
@@ -39,7 +43,6 @@ class DQN(ReinforcementLearning):
             self.Q = MLP(state_size, hidden_units,
                          self.world.number_of_actions())
         self.Q_ = self.Q.clone()
-        self.D = []
         self.err = []
         self.updates = 0
         self.steps_since_last_save_net = 0
@@ -48,9 +51,16 @@ class DQN(ReinforcementLearning):
         y0 = self.Q.predict([state])
         return y0[0].argmax()
 
+    def choose_action(self, state):
+        if self.teacher:
+            # must return the index of an action
+            return self.teacher.choose_action(state, self.world)
+        else:
+            return super(DQN, self).choose_action(state)
+
     def get_batch(self):
         states, actions, new_states, rewards, terminals = [], [], [], [], []
-        for t in range(self.batch_size):
+        for t in range(min(self.batch_size, len(self.D))):
             i = random.randint(0, len(self.D) - 1)
             states.append(self.D[i][0])
             actions.append(self.D[i][1])
