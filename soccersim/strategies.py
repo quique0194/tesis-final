@@ -87,32 +87,44 @@ class StrategyBase(object):
         """Strategy for an attacker working with DQN."""
         angle_to_ball = angle_to(team[role].pos, ball.pos)
         angle_to_goal = angle_to(team[role].pos, goals[not side])
+        angle_ball_to_goal = angle_to(team[role].pos, goals[not side])
+        dist_ball_to_goal = dist(ball.pos, goals[not side])
+        dist_to_goal = dist(team[role].pos, goals[not side])
+        dist_to_ball = dist(team[role].pos, ball.pos)
 
-        ball_to_goal = dist(ball.pos, goals[not side])
-        dist_to_side = dist(team[role].pos, goals[not side])
+        print "angle_to_ball", angle_to_ball
+        print "angle_to_goal", angle_to_goal
+        print "angle_ball_to_goal", angle_ball_to_goal
+        print "dist_ball_to_goal", dist_ball_to_goal
+        print "dist_to_goal", dist_to_goal
+        print "dist_to_ball", dist_to_ball
 
         # Decision tree
-        if abs(angle_diff(angle_to_goal, angle_to_ball)) < 10 and \
-                ball_to_goal < dist_to_side:
+        target = None
+        if abs(angle_diff(angle_to_goal, angle_ball_to_goal)) < 1 and \
+                dist_ball_to_goal < dist_to_goal:
             # run to score!
-            team[role].move_to(ball.pos)
+            target = ball.pos
             print "GO KICK"
         else:
-            if abs(angle_to_ball) > 120:
+            if team[role].pos[0] < ball.pos[0]:
                 # go behind ball, aligned with goal
                 vec = vector_to(goals[not side], ball.pos)
                 vec = normalize_vector(vec, 0.7)
-                team[role].move_to(tonp(ball.pos) + vec)
+                target = tonp(ball.pos) + vec
                 print "PREPARE TO KICK"
             else:
                 # go behind goal
                 target = list(ball.pos)
                 if angle_to_ball > 0:
-                    target[1] -= 0.3
+                    target[1] -= 0.5
                 else:
-                    target[0] += 0.3
-                team[role].move_to(target)
+                    target[0] += 0.5
+                target[0] += 0.1
                 print "GO BEHIND BALL"
+
+        print team[role].pos, ball.pos, target
+        team[role].move_to(target)
 
     def run(self, team, opp, ball, side=0, tic=0):
         self.auto_goalkeeper2(team, 0, opp, ball, side, tic)
