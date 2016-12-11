@@ -13,9 +13,12 @@ class DQN(ReinforcementLearning):
     save_network_steps = 1000    # how many learn cycles to save networkt
     backup_network_episodes = 100     # how many episodes to create a backup
 
-    def __init__(self, network_name=None, data_filename=None,
-                 hidden_units=None, add_more_experience=True,
-                 make_net_learn=True, teacher=None,
+    def __init__(self, folder,
+                 batch_filename=None,
+                 hidden_units=None,
+                 add_more_experience=True,
+                 make_net_learn=True,
+                 teacher=None,
                  *args, **kwargs):
         super(DQN, self).__init__(*args, **kwargs)
         state_size = self.world.state_parser.state_size()
@@ -24,19 +27,22 @@ class DQN(ReinforcementLearning):
         self.add_more_experience = add_more_experience
         self.teacher = teacher
         self.make_net_learn = make_net_learn
-        self.network_name = network_name
-        self.data_filename = data_filename
+        self.folder = folder
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        self.network_name = os.path.join(folder, "qmlp.pkl")
+        self.data_filename = os.path.join(folder, "")
+        self.batch_filename = os.path.join(folder, "batch.pkl")
         # TODO: do not hardcode this part
-        self.batch_filename = "soccerdata/_batch.csv"
         if os.path.exists(self.batch_filename):
             print "LOADING BATCH FILE FROM", self.batch_filename
             with open(self.batch_filename, "rb") as f:
                 self.D = pickle.load(f)
         else:
             self.D = []
-        if network_name and os.path.exists(network_name):
-            print "LOADING NETWORK FROM:", network_name
-            with open(network_name, "rb") as f:
+        if self.network_name and os.path.exists(self.network_name):
+            print "LOADING NETWORK FROM:", self.network_name
+            with open(self.network_name, "rb") as f:
                 self.Q = pickle.load(f)
         else:
             print "Creating MLP with %i hidden units" % hidden_units
@@ -54,7 +60,11 @@ class DQN(ReinforcementLearning):
     def choose_action(self, state):
         if self.teacher:
             # must return the index of an action
-            return self.teacher.choose_action(state, self.world)
+            if np.random.rand() <= self.random_prob:
+                action = self.teacher.choose_action(state, self.world)
+            else:
+                action = self.best_action(state)
+            return action
         else:
             return super(DQN, self).choose_action(state)
 
@@ -102,7 +112,8 @@ class DQN(ReinforcementLearning):
         if name is None:
             name = self.network_name
         if name:
-            name += ".pkl"
+            if not name.endswith(".pkl"):
+                name += ".pkl"
             print "SAVING NETWORK TO", name
             with open(name, "wb") as f:
                 pickle.dump(self.Q, f)
@@ -112,10 +123,9 @@ class DQN(ReinforcementLearning):
         if i % self.backup_network_episodes == 0:
             self.save_net(self.network_name + "_" + str(i))
 
-    def save_data(self, name="rl"):
-        print "SAVING DATA TO:", name
-        super(DQN, self).save_data(name)
-        fhandle = open(name + "_" + "error.csv", "a")
+    def save_data(self):
+        super(DQN, self).save_data("rl")
+        fhandle = open("rl_error.csv", "a")
         np.savetxt(fhandle, self.err, delimiter=",")
         self.err = []
 

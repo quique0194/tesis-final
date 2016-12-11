@@ -106,11 +106,17 @@ class SoccerDQN(DQN):
         self.match_gols.append(self.world.match.blue_gd())
 
     def save_data(self, name="soccer_rl"):
-        super(SoccerDQN, self).save_data(name)
-        fhandle = open(name + "_" + "final_scores.csv", "a")
+        super(SoccerDQN, self).save_data()
+
+        # Save final scores
+        fname = os.path.join(self.folder, "final_scores.csv")
+        fhandle = open(fname, "a")
         np.savetxt(fhandle, self.final_scores, delimiter=",")
         self.final_scores = []
-        fhandle = open(name + "_" + "goles.csv", "a")
+
+        # Save goles
+        fname = os.path.jjoin(self.folder, "goles.csv")
+        fhandle = open(fname, "a")
         np.savetxt(fhandle, self.match_gols, delimiter=",")
         self.match_gols = []
 
@@ -142,7 +148,7 @@ class AutomaticTeacher(StrategyBase):
 
     def choose_action(self, state, world):
         world = copy.deepcopy(world)
-        self.auto_attacker2(world.match.blue_team, 1, world.match.red_team,
+        self.auto_attacker3(world.match.blue_team, 1, world.match.red_team,
                             world.match.ball, side=1, tic=world.match.tic)
 
         # Convert movement of player to RL action
@@ -180,11 +186,9 @@ if __name__ == "__main__":
 
     # TODO, construct world inside rl
     rl = SoccerDQN(
-        # teacher=AutomaticTeacher(),
-        teacher=None,
-        network_name="soccerdata_more/qmlp",
-        data_filename="soccerdata_more/",
-        world=SoccerWorld(graphics=True, actions=actions,
+        teacher=AutomaticTeacher(),
+        folder="improved_performance",
+        world=SoccerWorld(graphics=False, actions=actions,
                           state_parser=SoccerStateParser()),
         hidden_units=500,
         add_more_experience=True,
@@ -209,5 +213,5 @@ if __name__ == "__main__":
         rl.train(4000)
     finally:
         print "SAVING FILES...",
-        rl.save_data("soccerdata/")
+        rl.save_data()
         print "DONE"

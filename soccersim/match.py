@@ -7,6 +7,7 @@ from ball import Ball
 from settings import red, blue, black, white, goals
 import settings
 from utils import get_goal_rect
+from soccersim.utils import sign
 
 
 class Match(object):
@@ -42,6 +43,7 @@ class Match(object):
         #                                random.uniform(-1, 1))
         self.red_team = self.red_team[:self.red_players]
         self.blue_team = self.blue_team[:self.blue_players]
+        self.ball_outfield = False
 
     def new_match(self):
         self.reset()
@@ -109,10 +111,21 @@ class Match(object):
                 player.kicked = False
                 self.last_blue_score = -10
         if self.team_scored == 1:
-            self.last_blue_score = 1000
+            self.last_blue_score = 100
         elif self.team_scored == 0:
-            self.last_blue_score = -1000
+            self.last_blue_score = -100
+        elif self.outfield_penalty:
+            self.last_blue_score = -50
         self.blue_score = self.blue_score + self.last_blue_score
+
+    def check_ball_outfield(self):
+        self.outfield_penalty = False
+        if abs(self.ball.pos[0]) > 0.95:
+            self.ball.pos[0] -= 0.1 * sign(self.ball.pos[0])
+            self.outfield_penalty = True
+        if abs(self.ball.pos[1]) > 0.95:
+            self.ball.pos[1] -= 0.1 * sign(self.ball.pos[1])
+            self.outfield_penalty = True
 
     def run(self):
         if self.tic == 5001:
@@ -127,12 +140,16 @@ class Match(object):
             self.blue_strategy.run(self.blue_team, self.red_team, self.ball,
                                    side=1, tic=self.tic)
         self.ball.update()
+
+        # Check if someone scored
         # TODO: calculate_red_score()
         gol_to = self.is_ball_in_goal()
         if gol_to is not None:
             self.team_scored = not gol_to
             self.marcador[not gol_to] += 1
             print "GOL!!!!!!!!!!!", not gol_to
+
+        self.check_ball_outfield()
         self.calculate_blue_score()
         self.tic += 1
 

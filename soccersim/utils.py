@@ -4,6 +4,15 @@ from settings import width, height, goal_width, goal_height
 from pygame import Rect
 
 
+def sign(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    else:
+        return 0
+
+
 def tonp(x):
     if type(x) != np.ndarray:
         x = np.array(x)

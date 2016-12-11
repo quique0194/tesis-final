@@ -83,6 +83,9 @@ class StrategyBase(object):
         team[role].kick(ball, 0.15,
                         angle_to(team[role].pos, target) + noise)
 
+    def auto_attacker3(self, team, role, opp, ball, side=0, tic=0):
+        team[role].move_to(ball.pos)
+
     def auto_attacker2(self, team, role, opp, ball, side=0, tic=0):
         """Strategy for an attacker working with DQN."""
         angle_to_ball = angle_to(team[role].pos, ball.pos)
