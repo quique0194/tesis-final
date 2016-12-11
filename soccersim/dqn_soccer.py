@@ -182,7 +182,7 @@ if __name__ == "__main__":
     rl = SoccerDQN(
         # teacher=AutomaticTeacher(),
         teacher=None,
-        network_name="soccerdata/qmlp",
+        network_name="soccerdata_more/qmlp",
         data_filename="soccerdata_more/",
         world=SoccerWorld(graphics=True, actions=actions,
                           state_parser=SoccerStateParser()),
@@ -191,8 +191,8 @@ if __name__ == "__main__":
         make_net_learn=True,
     )
 
-    rl.random_prob = 0
-    rl.min_random_prob = 0
+    rl.random_prob = 0.75
+    rl.min_random_prob = 0.1
     rl.random_prob_decay = 0.999  # Reach 0.1 random_prob in 2000 episodes
 
     rl.train_info_steps = 1
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     rl.discount_rate = 0.999
 
     try:
-        rl.train(5000)
+        rl.train(4000)
     finally:
         print "SAVING FILES...",
         rl.save_data("soccerdata/")
