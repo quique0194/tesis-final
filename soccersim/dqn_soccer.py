@@ -180,9 +180,10 @@ if __name__ == "__main__":
 
     # TODO, construct world inside rl
     rl = SoccerDQN(
-        teacher=AutomaticTeacher(),
+        # teacher=AutomaticTeacher(),
+        teacher=None,
         network_name="soccerdata/qmlp",
-        data_filename="soccerdata/",
+        data_filename="soccerdata_more/",
         world=SoccerWorld(graphics=True, actions=actions,
                           state_parser=SoccerStateParser()),
         hidden_units=500,
@@ -202,6 +203,7 @@ if __name__ == "__main__":
     rl.clone_network_steps = 10000
     rl.save_network_steps = 10000
     rl.backup_network_episodes = 100
+    rl.discount_rate = 0.999
 
     try:
         rl.train(5000)

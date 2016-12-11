@@ -61,7 +61,7 @@ class ReinforcementLearning(object):
 
     def train_episode(self, i):
         if i % self.train_info_steps == 0 and self.print_episodes:
-            print "Episode", i, self.random_prob
+            print "Episode", i, "Random prob:", self.random_prob
         if i % self.train_info_steps == 0 and self.show_progress:
             self.graph_info()
         self.curr_episode_rewards = []
