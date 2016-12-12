@@ -13,7 +13,7 @@ class DQN(ReinforcementLearning):
     save_network_steps = 1000    # how many learn cycles to save networkt
     backup_network_episodes = 100     # how many episodes to create a backup
 
-    def __init__(self, folder,
+    def __init__(self,
                  batch_filename=None,
                  hidden_units=None,
                  add_more_experience=True,
@@ -27,12 +27,10 @@ class DQN(ReinforcementLearning):
         self.add_more_experience = add_more_experience
         self.teacher = teacher
         self.make_net_learn = make_net_learn
-        self.folder = folder
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        self.network_name = os.path.join(folder, "qmlp.pkl")
-        self.data_filename = os.path.join(folder, "")
-        self.batch_filename = os.path.join(folder, "batch.pkl")
+        self.network_name = os.path.join(self.folder, "qmlp.pkl")
+        self.data_filename = os.path.join(self.folder, "")
+        self.batch_filename = os.path.join(self.folder, "batch.pkl")
+        self.error_filename = os.path.join(self.folder, "error.csv")
         # TODO: do not hardcode this part
         if os.path.exists(self.batch_filename):
             print "LOADING BATCH FILE FROM", self.batch_filename
@@ -125,7 +123,9 @@ class DQN(ReinforcementLearning):
 
     def save_data(self):
         super(DQN, self).save_data("rl")
-        fhandle = open("rl_error.csv", "a")
+
+        # Save error
+        fhandle = open(self.error_filename, "a")
         np.savetxt(fhandle, self.err, delimiter=",")
         self.err = []
 

@@ -115,7 +115,7 @@ class SoccerDQN(DQN):
         self.final_scores = []
 
         # Save goles
-        fname = os.path.jjoin(self.folder, "goles.csv")
+        fname = os.path.join(self.folder, "goles.csv")
         fhandle = open(fname, "a")
         np.savetxt(fhandle, self.match_gols, delimiter=",")
         self.match_gols = []

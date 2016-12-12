@@ -1,6 +1,9 @@
+import sys
+import os
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
+from timer import Timer
 
 
 class ReinforcementLearning(object):
@@ -16,7 +19,7 @@ class ReinforcementLearning(object):
     show_graph = None
     show_progress = True
 
-    def __init__(self, world, state0=None):
+    def __init__(self, world, state0=None, folder="rl_data"):
         self.world = world
         if state0:
             self.state0 = self.world.state_parser.dump(state0)
@@ -24,6 +27,21 @@ class ReinforcementLearning(object):
             self.state0 = None
         self.avg_reward = []
         self.cumulative_reward = [0]
+        self.folder = folder
+
+        # Files
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
+        else:
+            ans = raw_input("The folder %s already exists, if you say 'y' "
+                            "we will use the files in folder to continue "
+                            "learning. Continue (y|n):")
+            if ans != "y":
+                sys.exit()
+        self.cumulative_reward_filename = os.path.join(folder,
+                                                       "avg_reward.csv")
+        self.avg_reward_filename = os.path.join(folder,
+                                                "cumulative_reward.csv")
 
     def choose_action(self, state):
         if np.random.rand() <= self.random_prob:
@@ -39,15 +57,16 @@ class ReinforcementLearning(object):
         else:
             state = state0
         steps = 0
-        while not self.world.isterminal():
-            steps += 1
-            state_backup = copy.deepcopy(state)
-            action = self.choose_action(state)
-            new_state, reward = self.world._exe_action(action)
-            self.curr_episode_rewards.append(reward)
-            self.learn(state_backup, action, new_state, reward,
-                       self.world.isterminal())
-            state = new_state
+        with Timer():
+            while not self.world.isterminal():
+                steps += 1
+                state_backup = copy.deepcopy(state)
+                action = self.choose_action(state)
+                new_state, reward = self.world._exe_action(action)
+                self.curr_episode_rewards.append(reward)
+                self.learn(state_backup, action, new_state, reward,
+                           self.world.isterminal())
+                state = new_state
         return steps
 
     def get_info(self):
@@ -84,14 +103,15 @@ class ReinforcementLearning(object):
     # OVERRIDE THE FOLLOWING METHODS
     ###########################################################################
     def save_data(self, name="rl"):
-        cr_handle = file(name + "_" + "cumulative_reward.csv", "a")
-        np.savetxt(cr_handle,
-                   self.cumulative_reward[:-1], delimiter=",")
-        self.cumulative_reward = self.cumulative_reward[-1:]
+        with Timer():
+            cr_handle = file(self.cumulative_reward_filename, "a")
+            np.savetxt(cr_handle,
+                       self.cumulative_reward[:-1], delimiter=",")
+            self.cumulative_reward = self.cumulative_reward[-1:]
 
-        ar_handle = file(name + "_" + "avg_reward.csv", "a")
-        np.savetxt(ar_handle, self.avg_reward[:-1], delimiter=",")
-        self.avg_reward = self.avg_reward[-1:]
+            ar_handle = file(self.avg_reward_filename, "a")
+            np.savetxt(ar_handle, self.avg_reward[:-1], delimiter=",")
+            self.avg_reward = self.avg_reward[-1:]
 
     def best_action(self, state):
         """Return index of best action given a state."""
