@@ -4,6 +4,7 @@ from mlp import MLP
 import numpy as np
 from rl_base import ReinforcementLearning
 import six.moves.cPickle as pickle
+# from timer import Timer
 
 
 class DQN(ReinforcementLearning):
