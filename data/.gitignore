@@ -1,0 +1,8 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+
+# This way this folder gets created
+# But files inside doesn't go to our repo

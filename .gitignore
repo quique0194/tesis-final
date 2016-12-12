@@ -1,0 +1,12 @@
+*.pyc
+35.161.133.251
+borrame*
+soccerdata*
+soccerdata/
+
+kike/
+*.csv
+improved_performance/
+dqn_data/
+new_world/
+final_flash/
