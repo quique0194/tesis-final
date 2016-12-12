@@ -13,6 +13,9 @@ class DQN(ReinforcementLearning):
     clone_network_steps = 100    # how many learn cycles to clone net
     save_network_steps = 1000    # how many learn cycles to save networkt
     backup_network_episodes = 100     # how many episodes to create a backup
+    learning_rate = 0.00025
+    teacher_prob = 0.75
+    teacher_prob_decay = 0.999
 
     def __init__(self,
                  batch_filename=None,
@@ -46,7 +49,8 @@ class DQN(ReinforcementLearning):
         else:
             print "Creating MLP with %i hidden units" % hidden_units
             self.Q = MLP(state_size, hidden_units,
-                         self.world.number_of_actions())
+                         self.world.number_of_actions(),
+                         lr=self.learning_rate)
         self.Q_ = self.Q.clone()
         self.err = []
         self.updates = 0
@@ -59,13 +63,9 @@ class DQN(ReinforcementLearning):
     def choose_action(self, state):
         if self.teacher:
             # must return the index of an action
-            if np.random.rand() <= self.random_prob:
-                action = self.teacher.choose_action(state, self.world)
-            else:
-                action = self.best_action(state)
-            return action
-        else:
-            return super(DQN, self).choose_action(state)
+            if np.random.rand() <= self.teacher_prob:
+                return self.teacher.choose_action(state, self.world)
+        return super(DQN, self).choose_action(state)
 
     def get_batch(self):
         states, actions, new_states, rewards, terminals = [], [], [], [], []
@@ -99,13 +99,14 @@ class DQN(ReinforcementLearning):
         y0[np.arange(len(y0)), actions] = obj
         if self.make_net_learn:
             e = self.Q.train(states, y0)
+            self.err.append(e.mean())
         self.updates += 1
         if self.updates % self.clone_network_steps == 0:
+            print "CLONING Q INTO _Q"
             self.Q.clone_in_existing_mlp(self.Q_)
         if self.updates % self.save_network_steps == 0:
             self.save_net()
             self.save_data(self.data_filename or "rl")
-        self.err.append(e.mean())
 
     def save_net(self, name=None):
         if name is None:
@@ -121,6 +122,7 @@ class DQN(ReinforcementLearning):
         super(DQN, self).train_episode(i)
         if i % self.backup_network_episodes == 0:
             self.save_net(self.network_name + "_" + str(i))
+        self.teacher_prob *= self.teacher_prob_decay
 
     def save_data(self):
         super(DQN, self).save_data("rl")

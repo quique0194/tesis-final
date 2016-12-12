@@ -105,17 +105,17 @@ class Match(object):
             if player.kicked:
                 self.blue_kicked_at_tic = self.tic
                 player.kicked = False
-                self.last_blue_score = 10
+                self.last_blue_score = 0.1
         for player in self.red_team:
             if player.kicked:
                 player.kicked = False
-                self.last_blue_score = -10
+                self.last_blue_score = -0.1
         if self.team_scored == 1:
-            self.last_blue_score = 100
+            self.last_blue_score = 1
         elif self.team_scored == 0:
-            self.last_blue_score = -100
+            self.last_blue_score = -1
         elif self.outfield_penalty:
-            self.last_blue_score = -50
+            self.last_blue_score = -0.5
         self.blue_score = self.blue_score + self.last_blue_score
 
     def check_ball_outfield(self):

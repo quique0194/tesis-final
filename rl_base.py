@@ -8,7 +8,7 @@ from timer import Timer
 
 class ReinforcementLearning(object):
     # Learning params
-    discount_rate = 0.999
+    discount_rate = 0.99
     random_prob = 1.0
     random_prob_decay = 0.95
     min_random_prob = 0.1

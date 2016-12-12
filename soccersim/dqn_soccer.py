@@ -88,6 +88,7 @@ class SoccerWorld(World):
         self.match = Match(
             2, 2,
             red_strategy=DoNothingStrategy(),
+            # red_strategy=StrategyBase(),
             blue_strategy=self.dqn_strategy,
         )
         return self.match.get_state()
@@ -187,27 +188,32 @@ if __name__ == "__main__":
     # TODO, construct world inside rl
     rl = SoccerDQN(
         teacher=AutomaticTeacher(),
-        folder="improved_performance",
-        world=SoccerWorld(graphics=False, actions=actions,
+        # teacher=None,
+        folder="borrame",
+        world=SoccerWorld(graphics=True, actions=actions,
                           state_parser=SoccerStateParser()),
         hidden_units=500,
         add_more_experience=True,
         make_net_learn=True,
     )
 
-    rl.random_prob = 0.75
+    rl.random_prob = 1
     rl.min_random_prob = 0.1
-    rl.random_prob_decay = 0.999  # Reach 0.1 random_prob in 2000 episodes
+    rl.random_prob_decay = 0.99  # Reach 0.1 random_prob in 2000 episodes
+
+    rl.teacher_prob = 0.75
+    rl.teacher_prob_decay = 0.999
 
     rl.train_info_steps = 1
     rl.show_progress = False
 
     rl.buffer_size = 100000
-    rl.batch_size = 20
+    rl.batch_size = 30
     rl.clone_network_steps = 10000
     rl.save_network_steps = 10000
     rl.backup_network_episodes = 100
-    rl.discount_rate = 0.999
+    rl.discount_rate = 0.99
+    rl.learning_rate = 0.00025
 
     try:
         rl.train(4000)
